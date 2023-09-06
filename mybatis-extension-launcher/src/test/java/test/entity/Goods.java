@@ -3,6 +3,7 @@ package test.entity;
 import com.github.developframework.mybatis.extension.core.annotation.Id;
 import com.github.developframework.mybatis.extension.core.annotation.Table;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
@@ -13,6 +14,7 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @Table("goods")
+@NoArgsConstructor
 public class Goods {
 
     @Id
@@ -20,8 +22,13 @@ public class Goods {
 
     private String goodsName;
 
-    private String quantity;
+    private Integer quantity;
 
     private LocalDateTime createTime;
 
+    public Goods(String goodsName, Integer quantity, LocalDateTime createTime) {
+        this.goodsName = goodsName;
+        this.quantity = quantity;
+        this.createTime = createTime;
+    }
 }

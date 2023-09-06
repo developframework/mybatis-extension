@@ -75,7 +75,7 @@ public class ColumnDesc {
     }
 
     private static String columnType(ColumnBuildMetadata columnBuildMetadata, java.lang.reflect.Type propertyType) {
-        if (!columnBuildMetadata.customizeType.isEmpty()) {
+        if (StringUtils.isNotEmpty(columnBuildMetadata.customizeType)) {
             final int i = columnBuildMetadata.customizeType.indexOf("(");
             if (i < 0) {
                 return columnBuildMetadata.customizeType.toLowerCase();

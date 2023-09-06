@@ -1,5 +1,7 @@
 package com.github.developframework.mybatis.extension.core.annotation;
 
+import com.github.developframework.mybatis.extension.core.structs.MysqlEngine;
+
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -33,4 +35,9 @@ public @interface Table {
      * 表格注释
      */
     String comment() default "";
+
+    /**
+     * 存储引擎
+     */
+    MysqlEngine engine() default MysqlEngine.InnoDB;
 }

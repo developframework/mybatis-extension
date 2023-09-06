@@ -3,17 +3,23 @@ package com.github.developframework.mybatis.extension.core;
 import com.github.developframework.mybatis.extension.core.structs.EntityDefinition;
 
 import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @author qiushui on 2023-08-30.
  */
-public class EntityDefinitionRegistry extends HashMap<Class<?>, EntityDefinition> {
+public class EntityDefinitionRegistry {
 
-    @Override
-    public EntityDefinition get(Object key) {
-        final EntityDefinition entityDefinition = super.get(key);
+    private final Map<Class<?>, EntityDefinition> internalMap = new HashMap<>();
+
+    public EntityDefinition register(Class<?> entityClass) {
+        return internalMap.computeIfAbsent(entityClass, EntityDefinition::new);
+    }
+
+    public EntityDefinition get(Class<?> entityClass) {
+        final EntityDefinition entityDefinition = internalMap.get(entityClass);
         if (entityDefinition == null) {
-            throw new IllegalArgumentException("不存在" + key.toString() + "的定义");
+            throw new IllegalArgumentException("不存在" + entityClass.getName() + "的定义");
         }
         return entityDefinition;
     }

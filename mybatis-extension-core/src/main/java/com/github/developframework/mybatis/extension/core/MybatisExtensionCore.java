@@ -2,6 +2,7 @@ package com.github.developframework.mybatis.extension.core;
 
 import com.github.developframework.mybatis.extension.core.structs.EntityDefinition;
 import com.github.developframework.mybatis.extension.core.structs.MappedStatementMetadata;
+import com.github.developframework.mybatis.extension.core.utils.MybatisUtils;
 import lombok.Getter;
 import org.apache.ibatis.session.Configuration;
 import org.apache.ibatis.session.SqlSessionFactory;
@@ -24,22 +25,22 @@ public class MybatisExtensionCore {
     public MybatisExtensionCore(SqlSessionFactory... sqlSessionFactories) {
         for (SqlSessionFactory sqlSessionFactory : sqlSessionFactories) {
             Configuration configuration = sqlSessionFactory.getConfiguration();
-            MappedStatementMetadataManager mappedStatementMetadataManager = new MappedStatementMetadataManager(configuration);
-            Map<String, MappedStatementMetadata> metadataMap = mappedStatementMetadataManager.getMetadataMap();
-            this.metadataMap.putAll(metadataMap);
-
-            for (MappedStatementMetadata metadata : metadataMap.values()) {
-                Class<?> entityClass = metadata.getEntityClass();
-                if (entityClass == null) {
-                    continue;
-                }
-                EntityDefinition entityDefinition = new EntityDefinition(entityClass);
-                entityDefinitionRegistry.put(entityClass, entityDefinition);
-
-                MapperNamingBuilder mapperNamingBuilder = new MapperNamingBuilder(configuration, metadata.getMapperClass(), entityDefinition);
+            for (Class<?> mapperClass : configuration.getMapperRegistry().getMappers()) {
+                Class<?> entityClass = MybatisUtils.getEntityClass(mapperClass);
+                EntityDefinition entityDefinition = entityDefinitionRegistry.register(entityClass);
+                MapperNamingBuilder mapperNamingBuilder = new MapperNamingBuilder(configuration, mapperClass, entityDefinition);
                 mapperNamingBuilder.parse();
-
             }
+//            MappedStatementMetadataManager mappedStatementMetadataManager = new MappedStatementMetadataManager(configuration);
+//            Map<String, MappedStatementMetadata> metadataMap = mappedStatementMetadataManager.getMetadataMap();
+//            this.metadataMap.putAll(metadataMap);
+//
+//            for (MappedStatementMetadata metadata : metadataMap.values()) {
+//                Class<?> entityClass = metadata.getEntityClass();
+//                if (entityClass == null) {
+//                    continue;
+//                }
+//            }
         }
     }
 }

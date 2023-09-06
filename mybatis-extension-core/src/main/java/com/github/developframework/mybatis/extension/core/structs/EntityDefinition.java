@@ -5,6 +5,7 @@ import com.github.developframework.mybatis.extension.core.utils.NameUtils;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.util.*;
 
@@ -25,10 +26,21 @@ public class EntityDefinition {
 
     private final String comment;
 
+    private final MysqlEngine engine;
+
     private final Map<String, ColumnDefinition> columnDefinitions;
 
     // 主键字段
     private final ColumnDefinition[] primaryKeyColumnDefinitions;
+
+    // 多租户字段
+    private final ColumnDefinition[] multipleTenantColumnDefinitions;
+
+    // 自动注入字段
+    private final ColumnDefinition[] autoInjectColumnDefinitions;
+
+    // 乐观锁版本字段
+    private final ColumnDefinition versionColumnDefinition;
 
     // 索引
     private final IndexDefinition[] indexDefinitions;
@@ -41,10 +53,15 @@ public class EntityDefinition {
         this.entityClass = entityClass;
         this.tableName = table.value();
         this.comment = table.comment();
+        this.engine = table.engine();
         this.columnDefinitions = new LinkedHashMap<>();
 
         List<ColumnDefinition> primaryKeyColumnDefinitionList = new ArrayList<>();
+        List<ColumnDefinition> multipleTenantColumnDefinitionList = new ArrayList<>();
+        List<ColumnDefinition> autoInjectColumnDefinitionList = new ArrayList<>();
         ColumnDefinition preparatoryPrimaryKeyColumnDefinition = null;
+
+        ColumnDefinition versionColumnDefinition = null;
 
         for (Field field : entityClass.getDeclaredFields()) {
             // 处理@Transient
@@ -57,14 +74,16 @@ public class EntityDefinition {
 
             // 处理@Column
             final Column column = field.getAnnotation(Column.class);
+            ColumnBuildMetadata metadata = new ColumnBuildMetadata();
+            ColumnMybatisPlaceholder placeholder = new ColumnMybatisPlaceholder();
+            columnDefinition.setColumnBuildMetadata(metadata);
+            columnDefinition.setColumnMybatisPlaceholder(placeholder);
             if (column == null) {
                 columnDefinition.setColumn(NameUtils.camelcaseToUnderline(field.getName()));
             } else {
                 columnDefinition.setColumn(
                         column.name().isEmpty() ? NameUtils.camelcaseToUnderline(field.getName()) : column.name()
                 );
-
-                ColumnBuildMetadata metadata = new ColumnBuildMetadata();
                 metadata.customizeType = column.customizeType();
                 metadata.nullable = column.nullable();
                 metadata.length = column.length();
@@ -72,19 +91,26 @@ public class EntityDefinition {
                 metadata.unsigned = column.unsigned();
                 metadata.defaultValue = column.defaultValue().isEmpty() ? null : column.defaultValue();
                 metadata.comment = column.comment().isEmpty() ? null : column.comment();
-                columnDefinition.setColumnBuildMetadata(metadata);
 
-                ColumnMybatisPlaceholder placeholder = new ColumnMybatisPlaceholder();
                 placeholder.javaType = column.javaType();
                 placeholder.jdbcType = column.jdbcType();
                 placeholder.typeHandlerClass = column.typeHandler();
-                columnDefinition.setColumnMybatisPlaceholder(placeholder);
+            }
+
+            // 处理@Version
+            if (field.isAnnotationPresent(Version.class) && (field.getType() == int.class || field.getType() == long.class)) {
+                if (versionColumnDefinition != null) {
+                    throw new IllegalArgumentException(entityClass + "只能标注一个字段为@Version");
+                }
+                columnDefinition.setVersion(true);
+                versionColumnDefinition = columnDefinition;
             }
 
             if (preparatoryPrimaryKeyColumnDefinition == null && field.getName().equals(DEFAULT_ID)) {
                 // 预备主键字段 字段名为id
                 columnDefinition.setPrimaryKey(true);
                 columnDefinition.setUseGeneratedKey(true);
+                metadata.autoIncrement = true;
                 preparatoryPrimaryKeyColumnDefinition = columnDefinition;
             }
 
@@ -93,7 +119,19 @@ public class EntityDefinition {
             if (id != null) {
                 columnDefinition.setPrimaryKey(true);
                 columnDefinition.setUseGeneratedKey(id.useGeneratedKey());
+                metadata.autoIncrement = true;
                 primaryKeyColumnDefinitionList.add(columnDefinition);
+            }
+
+            // 处理@AutoInject
+            final AutoInject autoInject = getAutoInject(field);
+            if (autoInject != null) {
+                columnDefinition.setAutoInjectProviderClass(autoInject.value());
+                columnDefinition.setMultipleTenant(autoInject.multipleTenant());
+                autoInjectColumnDefinitionList.add(columnDefinition);
+                if (autoInject.multipleTenant()) {
+                    multipleTenantColumnDefinitionList.add(columnDefinition);
+                }
             }
 
             columnDefinitions.put(columnDefinition.getProperty(), columnDefinition);
@@ -107,7 +145,10 @@ public class EntityDefinition {
             }
         }
 
-        primaryKeyColumnDefinitions = primaryKeyColumnDefinitionList.toArray(ColumnDefinition[]::new);
+        this.primaryKeyColumnDefinitions = primaryKeyColumnDefinitionList.toArray(ColumnDefinition[]::new);
+        this.multipleTenantColumnDefinitions = multipleTenantColumnDefinitionList.toArray(ColumnDefinition[]::new);
+        this.autoInjectColumnDefinitions = autoInjectColumnDefinitionList.toArray(ColumnDefinition[]::new);
+        this.versionColumnDefinition = versionColumnDefinition;
 
         // 处理@Index
         this.indexDefinitions = parseIndexes(table.indexes());
@@ -144,7 +185,49 @@ public class EntityDefinition {
         return columnDefinition;
     }
 
+    private static AutoInject getAutoInject(Field field) {
+        for (Annotation annotation : field.getAnnotations()) {
+            if (annotation instanceof AutoInject) {
+                return (AutoInject) annotation;
+            } else {
+                AutoInject autoInject = annotation.annotationType().getAnnotation(AutoInject.class);
+                if (autoInject != null) {
+                    return autoInject;
+                }
+            }
+        }
+        return null;
+    }
+
     public String wrapTableName() {
         return NameUtils.wrap(tableName);
+    }
+
+    /**
+     * 是否复合主键
+     */
+    public boolean isCompositeId() {
+        return primaryKeyColumnDefinitions.length > 1;
+    }
+
+    /**
+     * 是否有乐观锁
+     */
+    public boolean hasOptimisticLock() {
+        return versionColumnDefinition != null;
+    }
+
+    /**
+     * 是否多租户功能实体
+     */
+    public boolean hasMultipleTenant() {
+        return multipleTenantColumnDefinitions.length > 0;
+    }
+
+    /**
+     * 是否有自动注入
+     */
+    public boolean hasAutoInject() {
+        return autoInjectColumnDefinitions.length > 0;
     }
 }

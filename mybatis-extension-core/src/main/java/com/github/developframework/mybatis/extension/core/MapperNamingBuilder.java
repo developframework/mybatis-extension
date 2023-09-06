@@ -1,6 +1,7 @@
 package com.github.developframework.mybatis.extension.core;
 
 import com.github.developframework.mybatis.extension.core.parser.MapperMethodParser;
+import com.github.developframework.mybatis.extension.core.parser.def.BaseMapperDefaultParser;
 import com.github.developframework.mybatis.extension.core.parser.naming.MapperMethodNamingParser;
 import com.github.developframework.mybatis.extension.core.structs.EntityDefinition;
 import com.github.developframework.mybatis.extension.core.structs.MapperMethodParseWrapper;
@@ -22,6 +23,9 @@ import org.apache.ibatis.scripting.LanguageDriver;
 import org.apache.ibatis.session.Configuration;
 import org.apache.ibatis.session.ResultHandler;
 import org.apache.ibatis.session.RowBounds;
+import org.apache.ibatis.type.JdbcType;
+import org.apache.ibatis.type.TypeHandler;
+import org.apache.ibatis.type.UnknownTypeHandler;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.*;
@@ -48,6 +52,7 @@ public class MapperNamingBuilder {
 
     public void parse() {
         final Set<String> existsMappedStatementIds = configuration.getMappedStatements().stream().map(MappedStatement::getId).collect(Collectors.toSet());
+        assistant.setCurrentNamespace(type.getName());
         for (Method method : type.getMethods()) {
             if (!canHaveStatement(method)) {
                 continue;
@@ -69,13 +74,17 @@ public class MapperNamingBuilder {
         final Class<?> parameterTypeClass = getParameterType(method);
         final LanguageDriver languageDriver = getLanguageDriver(method);
 
-        // 通过命名方式生成SqlSource
-        final MapperMethodParseWrapper wrapper = buildByNaming(method);
+        MapperMethodParseWrapper wrapper = buildWrapper(method);
         if (wrapper == null) {
             return;
         }
         final SqlSource sqlSource = wrapper.sqlSource();
         final SqlCommandType sqlCommandType = wrapper.sqlCommandType();
+
+        if (sqlCommandType == SqlCommandType.SELECT) {
+            parseResultMap(method);
+        }
+
         final Options options = getAnnotationWrapper(method, false, Options.class).map(x -> (Options) x.getAnnotation()).orElse(null);
         final KeyGenerator keyGenerator;
         String keyProperty = null;
@@ -154,6 +163,182 @@ public class MapperNamingBuilder {
                 // ResultSets
                 options != null ? nullOrEmpty(options.resultSets()) : null
         );
+    }
+
+    private String parseResultMap(Method method) {
+        Class<?> returnType = getReturnType(method);
+        Arg[] args = method.getAnnotationsByType(Arg.class);
+        Result[] results = method.getAnnotationsByType(Result.class);
+        TypeDiscriminator typeDiscriminator = method.getAnnotation(TypeDiscriminator.class);
+        String resultMapId = generateResultMapName(method);
+        applyResultMap(resultMapId, returnType, args, results, typeDiscriminator);
+        return resultMapId;
+    }
+
+    private void applyResultMap(String resultMapId, Class<?> returnType, Arg[] args, Result[] results, TypeDiscriminator discriminator) {
+        List<ResultMapping> resultMappings = new ArrayList<>();
+        applyConstructorArgs(args, returnType, resultMappings);
+        applyResults(results, returnType, resultMappings);
+        Discriminator disc = applyDiscriminator(resultMapId, returnType, discriminator);
+        // TODO add AutoMappingBehaviour
+        assistant.addResultMap(resultMapId, returnType, null, disc, resultMappings, null);
+        createDiscriminatorResultMaps(resultMapId, returnType, discriminator);
+    }
+
+    private void applyConstructorArgs(Arg[] args, Class<?> resultType, List<ResultMapping> resultMappings) {
+        for (Arg arg : args) {
+            List<ResultFlag> flags = new ArrayList<>();
+            flags.add(ResultFlag.CONSTRUCTOR);
+            if (arg.id()) {
+                flags.add(ResultFlag.ID);
+            }
+            @SuppressWarnings("unchecked")
+            Class<? extends TypeHandler<?>> typeHandler = (Class<? extends TypeHandler<?>>)
+                    (arg.typeHandler() == UnknownTypeHandler.class ? null : arg.typeHandler());
+            ResultMapping resultMapping = assistant.buildResultMapping(
+                    resultType,
+                    nullOrEmpty(arg.name()),
+                    nullOrEmpty(arg.column()),
+                    arg.javaType() == void.class ? null : arg.javaType(),
+                    arg.jdbcType() == JdbcType.UNDEFINED ? null : arg.jdbcType(),
+                    nullOrEmpty(arg.select()),
+                    nullOrEmpty(arg.resultMap()),
+                    null,
+                    nullOrEmpty(arg.columnPrefix()),
+                    typeHandler,
+                    flags,
+                    null,
+                    null,
+                    false);
+            resultMappings.add(resultMapping);
+        }
+    }
+
+    private void applyResults(Result[] results, Class<?> resultType, List<ResultMapping> resultMappings) {
+        for (Result result : results) {
+            List<ResultFlag> flags = new ArrayList<>();
+            if (result.id()) {
+                flags.add(ResultFlag.ID);
+            }
+            @SuppressWarnings("unchecked")
+            Class<? extends TypeHandler<?>> typeHandler = (Class<? extends TypeHandler<?>>)
+                    ((result.typeHandler() == UnknownTypeHandler.class) ? null : result.typeHandler());
+            boolean hasNestedResultMap = hasNestedResultMap(result);
+            ResultMapping resultMapping = assistant.buildResultMapping(
+                    resultType,
+                    nullOrEmpty(result.property()),
+                    nullOrEmpty(result.column()),
+                    result.javaType() == void.class ? null : result.javaType(),
+                    result.jdbcType() == JdbcType.UNDEFINED ? null : result.jdbcType(),
+                    hasNestedSelect(result) ? nestedSelectId(result) : null,
+                    hasNestedResultMap ? nestedResultMapId(result) : null,
+                    null,
+                    hasNestedResultMap ? findColumnPrefix(result) : null,
+                    typeHandler,
+                    flags,
+                    null,
+                    null,
+                    isLazy(result));
+            resultMappings.add(resultMapping);
+        }
+    }
+
+    private boolean hasNestedResultMap(Result result) {
+        if (result.one().resultMap().length() > 0 && result.many().resultMap().length() > 0) {
+            throw new BuilderException("Cannot use both @One and @Many annotations in the same @Result");
+        }
+        return result.one().resultMap().length() > 0 || result.many().resultMap().length() > 0;
+    }
+
+    private boolean hasNestedSelect(Result result) {
+        if (result.one().select().length() > 0 && result.many().select().length() > 0) {
+            throw new BuilderException("Cannot use both @One and @Many annotations in the same @Result");
+        }
+        return result.one().select().length() > 0 || result.many().select().length() > 0;
+    }
+
+    private String nestedResultMapId(Result result) {
+        String resultMapId = result.one().resultMap();
+        if (resultMapId.length() < 1) {
+            resultMapId = result.many().resultMap();
+        }
+        if (!resultMapId.contains(".")) {
+            resultMapId = type.getName() + "." + resultMapId;
+        }
+        return resultMapId;
+    }
+
+    private String nestedSelectId(Result result) {
+        String nestedSelect = result.one().select();
+        if (nestedSelect.length() < 1) {
+            nestedSelect = result.many().select();
+        }
+        if (!nestedSelect.contains(".")) {
+            nestedSelect = type.getName() + "." + nestedSelect;
+        }
+        return nestedSelect;
+    }
+
+    private String findColumnPrefix(Result result) {
+        String columnPrefix = result.one().columnPrefix();
+        if (columnPrefix.length() < 1) {
+            columnPrefix = result.many().columnPrefix();
+        }
+        return columnPrefix;
+    }
+
+    private boolean isLazy(Result result) {
+        boolean isLazy = configuration.isLazyLoadingEnabled();
+        if (result.one().select().length() > 0 && FetchType.DEFAULT != result.one().fetchType()) {
+            isLazy = result.one().fetchType() == FetchType.LAZY;
+        } else if (result.many().select().length() > 0 && FetchType.DEFAULT != result.many().fetchType()) {
+            isLazy = result.many().fetchType() == FetchType.LAZY;
+        }
+        return isLazy;
+    }
+
+    private void createDiscriminatorResultMaps(String resultMapId, Class<?> resultType, TypeDiscriminator discriminator) {
+        if (discriminator != null) {
+            for (Case c : discriminator.cases()) {
+                String caseResultMapId = resultMapId + "-" + c.value();
+                List<ResultMapping> resultMappings = new ArrayList<>();
+                // issue #136
+                applyConstructorArgs(c.constructArgs(), resultType, resultMappings);
+                applyResults(c.results(), resultType, resultMappings);
+                // TODO add AutoMappingBehaviour
+                assistant.addResultMap(caseResultMapId, c.type(), resultMapId, null, resultMappings, null);
+            }
+        }
+    }
+
+    private Discriminator applyDiscriminator(String resultMapId, Class<?> resultType, TypeDiscriminator discriminator) {
+        if (discriminator != null) {
+            String column = discriminator.column();
+            Class<?> javaType = discriminator.javaType() == void.class ? String.class : discriminator.javaType();
+            JdbcType jdbcType = discriminator.jdbcType() == JdbcType.UNDEFINED ? null : discriminator.jdbcType();
+            @SuppressWarnings("unchecked")
+            Class<? extends TypeHandler<?>> typeHandler = (Class<? extends TypeHandler<?>>)
+                    (discriminator.typeHandler() == UnknownTypeHandler.class ? null : discriminator.typeHandler());
+            Case[] cases = discriminator.cases();
+            Map<String, String> discriminatorMap = new HashMap<>();
+            for (Case c : cases) {
+                String value = c.value();
+                String caseResultMapId = resultMapId + "-" + value;
+                discriminatorMap.put(value, caseResultMapId);
+            }
+            return assistant.buildDiscriminator(resultType, column, javaType, jdbcType, typeHandler, discriminatorMap);
+        }
+        return null;
+    }
+
+
+    private MapperMethodParseWrapper buildWrapper(Method method) {
+        MapperMethodParseWrapper wrapper = buildBaseMapperDefault(method);
+        if (wrapper == null) {
+            // 通过命名方式生成SqlSource
+            wrapper = buildByNaming(method);
+        }
+        return wrapper;
     }
 
     private Class<?> getParameterType(Method method) {
@@ -250,9 +435,14 @@ public class MapperNamingBuilder {
         return answer;
     }
 
+    private MapperMethodParseWrapper buildBaseMapperDefault(Method method) {
+        BaseMapperDefaultParser parser = new BaseMapperDefaultParser(configuration);
+        return parser.parse(entityDefinition, method);
+    }
+
     private MapperMethodParseWrapper buildByNaming(Method method) {
-        MapperMethodParser mapperMethodParser = new MapperMethodNamingParser(configuration);
-        return mapperMethodParser.parse(entityDefinition, method);
+        MapperMethodParser parser = new MapperMethodNamingParser(configuration);
+        return parser.parse(entityDefinition, method);
     }
 
     private SqlSource buildSqlSource(Annotation annotation, Class<?> parameterType, LanguageDriver languageDriver, Method method) {

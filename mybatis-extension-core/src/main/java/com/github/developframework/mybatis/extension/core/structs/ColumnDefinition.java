@@ -1,5 +1,6 @@
 package com.github.developframework.mybatis.extension.core.structs;
 
+import com.github.developframework.mybatis.extension.core.autoinject.AutoInjectProvider;
 import com.github.developframework.mybatis.extension.core.utils.NameUtils;
 import lombok.Getter;
 import lombok.Setter;
@@ -28,6 +29,12 @@ public class ColumnDefinition {
     private boolean useGeneratedKey;
 
     private boolean primaryKey;
+
+    private boolean multipleTenant;
+
+    private Class<? extends AutoInjectProvider> autoInjectProviderClass;
+
+
 
     public String placeholder() {
         return columnMybatisPlaceholder.placeholder(property);
