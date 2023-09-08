@@ -16,12 +16,17 @@ public class BaseMapperDefaultParser implements MapperMethodParser {
 
     private final Configuration configuration;
 
-    private final SqlSourceBuilder[] DEFAULT_BUILDER = {
+    private static final SqlSourceBuilder[] DEFAULT_BUILDER = {
             new InsertSqlSourceBuilder(),
             new InsertAllSqlSourceBuilder(),
             new ReplaceSqlSourceBuilder(),
             new ReplaceAllSqlSourceBuilder(),
+            new UpdateSqlSourceBuilder(),
+            new DeleteByIdSqlSourceBuilder(),
+
+            new ExistsByIdSqlSourceBuilder(),
             new SelectByIdSqlSourceBuilder(),
+
             new CreateTableSqlSourceBuilder(),
             new AlterSqlSourceBuilder(),
             new ShowIndexSqlSourceBuilder(),
