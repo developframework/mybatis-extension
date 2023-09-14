@@ -5,6 +5,7 @@ import com.github.developframework.mybatis.extension.core.annotation.Table;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.ToString;
 
 import java.time.LocalDateTime;
 
@@ -14,6 +15,7 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @Table("goods")
+@ToString
 @NoArgsConstructor
 public class Goods {
 

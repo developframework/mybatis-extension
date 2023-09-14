@@ -10,5 +10,7 @@ import java.util.List;
  */
 public interface GoodsMapper extends BaseMapper<Goods, Integer> {
 
-    List<Goods> selectAll();
+    List<Goods> selectByGoodsName(String name);
+
+    int updateGoodsName(Goods goods);
 }

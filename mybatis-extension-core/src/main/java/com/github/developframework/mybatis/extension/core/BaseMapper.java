@@ -2,6 +2,9 @@ package com.github.developframework.mybatis.extension.core;
 
 import com.github.developframework.mybatis.extension.core.structs.ColumnDesc;
 import com.github.developframework.mybatis.extension.core.structs.IndexDesc;
+import com.github.developframework.mybatis.extension.core.structs.LockType;
+import com.github.developframework.mybatis.extension.core.structs.ParameterKeys;
+import org.apache.ibatis.annotations.Param;
 
 import java.io.Serializable;
 import java.util.Collection;
@@ -55,9 +58,34 @@ public interface BaseMapper<T, ID extends Serializable> {
     Optional<T> selectById(ID id);
 
     /**
+     * @see com.github.developframework.mybatis.extension.core.parser.def.SelectByIdLockSqlSourceBuilder
+     */
+    Optional<T> selectByIdLock(@Param("id") ID id, @Param(ParameterKeys.LOCK) LockType lockType);
+
+    /**
      * @see com.github.developframework.mybatis.extension.core.parser.def.SelectByIdArraySqlSourceBuilder
      */
     List<T> selectByIdArray(ID[] ids);
+
+    /**
+     * @see com.github.developframework.mybatis.extension.core.parser.def.SelectByIdArrayLockSqlSourceBuilder
+     */
+    List<T> selectByIdArrayLock(@Param("ids") ID[] ids, @Param(ParameterKeys.LOCK) LockType lockType);
+
+    /**
+     * @see com.github.developframework.mybatis.extension.core.parser.def.SelectByIdsSqlSourceBuilder
+     */
+    List<T> selectByIds(Collection<ID> ids);
+
+    /**
+     * @see com.github.developframework.mybatis.extension.core.parser.def.SelectByIdsLockSqlSourceBuilder
+     */
+    List<T> selectByIdsLock(@Param("ids") Collection<ID> ids, @Param(ParameterKeys.LOCK) LockType lockType);
+
+    /**
+     * @see com.github.developframework.mybatis.extension.core.parser.def.SelectAllSqlSourceBuilder
+     */
+    List<T> selectAll();
 
     /**
      * @see com.github.developframework.mybatis.extension.core.parser.def.DescSqlSourceBuilder

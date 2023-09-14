@@ -7,11 +7,7 @@ import org.apache.ibatis.session.Configuration;
 import org.apache.ibatis.session.SqlSession;
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.junit.Test;
-import test.entity.Goods;
 import test.mapper.GoodsMapper;
-
-import java.time.LocalDateTime;
-import java.util.List;
 
 /**
  * @author qiushui on 2023-08-30.
@@ -34,18 +30,16 @@ public class JunitTest {
 
             @Override
             public boolean enableDDL() {
-                return true;
+                return false;
             }
         });
         try (SqlSession sqlSession = sqlSessionFactory.openSession(true)) {
             final GoodsMapper mapper = sqlSession.getMapper(GoodsMapper.class);
-            final List<Goods> goods = List.of(
-                    new Goods("饼干", 3, LocalDateTime.now())
-            );
-            mapper.insertAll(goods);
-            System.out.println(goods);
-//            final Optional<Goods> optional = mapper.selectByPK(32);
-//            optional.ifPresent(System.out::println);
+            mapper.selectById(1)
+                    .ifPresent(goods -> {
+                        goods.setGoodsName(goods.getGoodsName() + "1");
+                        mapper.updateGoodsName(goods);
+                    });
         }
     }
 }

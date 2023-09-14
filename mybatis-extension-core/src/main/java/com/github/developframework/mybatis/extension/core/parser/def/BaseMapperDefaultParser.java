@@ -26,6 +26,12 @@ public class BaseMapperDefaultParser implements MapperMethodParser {
 
             new ExistsByIdSqlSourceBuilder(),
             new SelectByIdSqlSourceBuilder(),
+            new SelectByIdLockSqlSourceBuilder(),
+            new SelectByIdArraySqlSourceBuilder(),
+            new SelectByIdArrayLockSqlSourceBuilder(),
+            new SelectByIdsSqlSourceBuilder(),
+            new SelectByIdsLockSqlSourceBuilder(),
+            new SelectAllSqlSourceBuilder(),
 
             new CreateTableSqlSourceBuilder(),
             new AlterSqlSourceBuilder(),

@@ -4,25 +4,30 @@ import com.github.developframework.mybatis.extension.core.structs.EntityDefiniti
 import com.github.developframework.mybatis.extension.core.structs.MapperMethodParseWrapper;
 import org.apache.ibatis.mapping.SqlCommandType;
 import org.apache.ibatis.mapping.SqlSource;
-import org.apache.ibatis.scripting.defaults.RawSqlSource;
+import org.apache.ibatis.scripting.xmltags.*;
 import org.apache.ibatis.session.Configuration;
 
 import java.lang.reflect.Method;
+import java.util.LinkedList;
+import java.util.List;
 
 /**
- * @author qiushui on 2023-09-06.
+ * @author qiushui on 2023-09-14.
  */
-public class ShowIndexSqlSourceBuilder implements SqlSourceBuilder {
-
+public class SelectAllSqlSourceBuilder extends AbstractSqlSourceBuilder {
     @Override
     public String methedName() {
-        return "showIndex";
+        return "selectAll";
     }
 
     @Override
     public MapperMethodParseWrapper build(Configuration configuration, EntityDefinition entityDefinition, Method method) {
-        final String sql = "SHOW INDEX FROM " + entityDefinition.wrapTableName() + "WHERE Key_name != 'PRIMARY'";
-        SqlSource sqlSource = new RawSqlSource(configuration, sql, null);
+        final List<SqlNode> sqlNodes = new LinkedList<>();
+        sqlNodes.add(new StaticTextSqlNode("SELECT * FROM " + entityDefinition.wrapTableName()));
+        if (entityDefinition.hasMultipleTenant()) {
+            sqlNodes.add(new WhereSqlNode(configuration, multipleTenantSqlNodes(entityDefinition)));
+        }
+        SqlSource sqlSource = new DynamicSqlSource(configuration, new MixedSqlNode(sqlNodes));
         return new MapperMethodParseWrapper(SqlCommandType.SELECT, sqlSource);
     }
 }

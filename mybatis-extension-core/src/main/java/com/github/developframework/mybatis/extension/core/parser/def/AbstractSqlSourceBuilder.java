@@ -3,11 +3,9 @@ package com.github.developframework.mybatis.extension.core.parser.def;
 import com.github.developframework.mybatis.extension.core.parser.naming.Interval;
 import com.github.developframework.mybatis.extension.core.structs.ColumnDefinition;
 import com.github.developframework.mybatis.extension.core.structs.EntityDefinition;
+import com.github.developframework.mybatis.extension.core.structs.LockType;
 import com.github.developframework.mybatis.extension.core.structs.ParameterKeys;
-import org.apache.ibatis.scripting.xmltags.IfSqlNode;
-import org.apache.ibatis.scripting.xmltags.MixedSqlNode;
-import org.apache.ibatis.scripting.xmltags.SqlNode;
-import org.apache.ibatis.scripting.xmltags.StaticTextSqlNode;
+import org.apache.ibatis.scripting.xmltags.*;
 
 import java.util.Arrays;
 import java.util.List;
@@ -50,5 +48,21 @@ public abstract class AbstractSqlSourceBuilder implements SqlSourceBuilder {
                 })
                 .collect(Collectors.toList());
         return new MixedSqlNode(ifSqlNodes);
+    }
+
+    protected final ChooseSqlNode lockChooseSqlNode() {
+        return new ChooseSqlNode(
+                List.of(
+                        new IfSqlNode(
+                                new StaticTextSqlNode(LockType.WRITE.getSql()),
+                                String.format("%s eq @%s@%s", ParameterKeys.LOCK, LockType.class.getName(), LockType.WRITE.name())
+                        ),
+                        new IfSqlNode(
+                                new StaticTextSqlNode(LockType.READ.getSql()),
+                                String.format("%s eq @%s@%s", ParameterKeys.LOCK, LockType.class.getName(), LockType.READ.name())
+                        )
+                ),
+                new StaticTextSqlNode("")
+        );
     }
 }

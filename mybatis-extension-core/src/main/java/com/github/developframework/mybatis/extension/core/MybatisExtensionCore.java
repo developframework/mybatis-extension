@@ -31,16 +31,6 @@ public class MybatisExtensionCore {
                 MapperNamingBuilder mapperNamingBuilder = new MapperNamingBuilder(configuration, mapperClass, entityDefinition);
                 mapperNamingBuilder.parse();
             }
-//            MappedStatementMetadataManager mappedStatementMetadataManager = new MappedStatementMetadataManager(configuration);
-//            Map<String, MappedStatementMetadata> metadataMap = mappedStatementMetadataManager.getMetadataMap();
-//            this.metadataMap.putAll(metadataMap);
-//
-//            for (MappedStatementMetadata metadata : metadataMap.values()) {
-//                Class<?> entityClass = metadata.getEntityClass();
-//                if (entityClass == null) {
-//                    continue;
-//                }
-//            }
         }
     }
 }

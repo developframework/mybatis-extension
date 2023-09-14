@@ -23,6 +23,6 @@ public class DescSqlSourceBuilder implements SqlSourceBuilder {
     public MapperMethodParseWrapper build(Configuration configuration, EntityDefinition entityDefinition, Method method) {
         final String sql = "DESC " + entityDefinition.wrapTableName();
         SqlSource sqlSource = new RawSqlSource(configuration, sql, null);
-        return new MapperMethodParseWrapper(SqlCommandType.UPDATE, sqlSource);
+        return new MapperMethodParseWrapper(SqlCommandType.SELECT, sqlSource);
     }
 }

@@ -176,7 +176,7 @@ public class MapperMethodNamingParser implements MapperMethodParser {
 
     private MethodPrefix getMethodPrefix(String methodName) {
         for (MethodPrefix methodPrefix : MethodPrefix.values()) {
-            if (methodName.startsWith(methodPrefix.getSqlPrefix())) {
+            if (methodName.startsWith(methodPrefix.getKeyword())) {
                 return methodPrefix;
             }
         }
@@ -322,7 +322,10 @@ public class MapperMethodNamingParser implements MapperMethodParser {
         // 参数名列表 为了剔除Pager
         final Class<?>[] parameterTypes = method.getParameterTypes();
         final List<NamingMethodParameter> namingMethodParameters = new ArrayList<>();
-//        for (int i = 0, c = method.getParameterCount(); i < c; i++) {
+        for (int i = 0, c = method.getParameterCount(); i < c; i++) {
+            namingMethodParameters.add(new NamingMethodParameter(ParamNameResolver.GENERIC_NAME_PREFIX + (i + 1), null));
+
+
 //            if (parameterTypes[i] != Pager.class) {
 //                final SqlCustomized sqlCustomized = (SqlCustomized) ArrayAssist
 //                        .getFirstTrue(method.getParameterAnnotations()[i], it -> it.annotationType() == SqlCustomized.class)
@@ -331,7 +334,7 @@ public class MapperMethodNamingParser implements MapperMethodParser {
 //            } else if (parameterTypes[i] == SelectSqlUnit.class) {
 //                throw new MapperMethodParseException("命名方式和SelectSqlAssembler不能同时使用");
 //            }
-//        }
+        }
         int i = 1;
         for (NamingElement namingElement : namingElements) {
             if (namingElement instanceof IntervalNamingElement) {
