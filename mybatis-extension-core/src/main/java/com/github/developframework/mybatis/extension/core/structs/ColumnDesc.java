@@ -1,5 +1,6 @@
 package com.github.developframework.mybatis.extension.core.structs;
 
+import com.github.developframework.mybatis.extension.core.utils.NameUtils;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
@@ -137,7 +138,7 @@ public class ColumnDesc {
             type = "timestamp";
         } else if (clazz.isEnum()) {
             type = Arrays.stream(clazz.getEnumConstants())
-                    .map(v -> "'" + v + "'")
+                    .map(v -> NameUtils.literal(v.toString()))
                     .collect(Collectors.joining(",", "enum(", ")"));
         } else {
             type = "varchar";

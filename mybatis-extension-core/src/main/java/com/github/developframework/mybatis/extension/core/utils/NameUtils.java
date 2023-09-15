@@ -9,6 +9,14 @@ public abstract class NameUtils {
         return "`" + name + "`";
     }
 
+    public static String literal(String name) {
+        return "'" + name + "'";
+    }
+
+    public static String placeholder(String name) {
+        return "#{" + name + "}";
+    }
+
     /**
      * 驼峰转下划线
      */
