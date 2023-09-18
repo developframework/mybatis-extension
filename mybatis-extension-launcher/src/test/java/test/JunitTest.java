@@ -7,7 +7,10 @@ import org.apache.ibatis.session.Configuration;
 import org.apache.ibatis.session.SqlSession;
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.junit.Test;
+import test.entity.Goods;
 import test.mapper.GoodsMapper;
+
+import java.util.List;
 
 /**
  * @author qiushui on 2023-08-30.
@@ -35,11 +38,10 @@ public class JunitTest {
         });
         try (SqlSession sqlSession = sqlSessionFactory.openSession(true)) {
             final GoodsMapper mapper = sqlSession.getMapper(GoodsMapper.class);
-            mapper.selectById(1)
-                    .ifPresent(goods -> {
-                        goods.setGoodsName(goods.getGoodsName() + "1");
-                        mapper.updateGoodsName(goods);
-                    });
+            final List<Goods> list = mapper.select((root, builder) -> {
+                return builder.eq(root.get(Goods.Fields.goodsName), "面包");
+            });
+            list.forEach(System.out::println);
         }
     }
 }

@@ -35,33 +35,37 @@ import java.util.stream.Collectors;
 /**
  * @author qiushui on 2023-09-01.
  */
-public class MapperNamingBuilder {
+public class MapperExtensionBuilder {
 
     private final Configuration configuration;
     private final MapperBuilderAssistant assistant;
     private final Class<?> type;
     private final EntityDefinition entityDefinition;
+    private final MappedStatementMetadataRegistry mappedStatementMetadataRegistry;
 
-    public MapperNamingBuilder(Configuration configuration, Class<?> type, EntityDefinition entityDefinition) {
+    public MapperExtensionBuilder(Configuration configuration, Class<?> type, EntityDefinition entityDefinition, MappedStatementMetadataRegistry mappedStatementMetadataRegistry) {
         String resource = type.getName().replace('.', '/') + ".java (best guess)";
         this.assistant = new MapperBuilderAssistant(configuration, resource);
         this.configuration = configuration;
         this.type = type;
         this.entityDefinition = entityDefinition;
+        this.mappedStatementMetadataRegistry = mappedStatementMetadataRegistry;
     }
 
     public void parse() {
-        final Set<String> existsMappedStatementIds = configuration.getMappedStatements().stream().map(MappedStatement::getId).collect(Collectors.toSet());
         assistant.setCurrentNamespace(type.getName());
         for (Method method : type.getMethods()) {
             if (!canHaveStatement(method)) {
                 continue;
             }
             String mappedStatementId = type.getName() + "." + method.getName();
-            if (existsMappedStatementIds.contains(mappedStatementId)) {
+            if (mappedStatementMetadataRegistry.exists(mappedStatementId)) {
                 continue;
             }
-            parseStatement(method, mappedStatementId);
+            MappedStatement mappedStatement = parseStatement(method, mappedStatementId);
+            if (mappedStatement != null) {
+                mappedStatementMetadataRegistry.register(mappedStatement);
+            }
         }
     }
 
@@ -70,13 +74,13 @@ public class MapperNamingBuilder {
         return !method.isBridge() && !method.isDefault();
     }
 
-    private void parseStatement(Method method, String mappedStatementId) {
+    private MappedStatement parseStatement(Method method, String mappedStatementId) {
         final Class<?> parameterTypeClass = getParameterType(method);
         final LanguageDriver languageDriver = getLanguageDriver(method);
 
         MapperMethodParseWrapper wrapper = buildWrapper(method);
         if (wrapper == null) {
-            return;
+            return null;
         }
         final SqlSource sqlSource = wrapper.sqlSource();
         final SqlCommandType sqlCommandType = wrapper.sqlCommandType();
@@ -138,7 +142,7 @@ public class MapperNamingBuilder {
             }
         }
 
-        assistant.addMappedStatement(
+        return assistant.addMappedStatement(
                 mappedStatementId,
                 sqlSource,
                 statementType,

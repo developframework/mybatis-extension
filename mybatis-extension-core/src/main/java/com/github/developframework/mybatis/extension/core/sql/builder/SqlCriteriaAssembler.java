@@ -8,5 +8,5 @@ import com.github.developframework.mybatis.extension.core.sql.SqlCriteria;
 @FunctionalInterface
 public interface SqlCriteriaAssembler {
 
-    SqlCriteria assemble(SqlCriteriaBuilder builder);
+    SqlCriteria assemble(SqlRoot root, SqlCriteriaBuilder builder);
 }

@@ -1,10 +1,12 @@
 package com.github.developframework.mybatis.extension.core;
 
+import com.github.developframework.mybatis.extension.core.sql.builder.SqlCriteriaAssembler;
 import com.github.developframework.mybatis.extension.core.structs.ColumnDesc;
 import com.github.developframework.mybatis.extension.core.structs.IndexDesc;
 import com.github.developframework.mybatis.extension.core.structs.LockType;
 import com.github.developframework.mybatis.extension.core.structs.ParameterKeys;
 import org.apache.ibatis.annotations.Param;
+import org.apache.ibatis.annotations.Select;
 
 import java.io.Serializable;
 import java.util.Collection;
@@ -106,5 +108,8 @@ public interface BaseMapper<T, ID extends Serializable> {
      * @see com.github.developframework.mybatis.extension.core.parser.def.AlterSqlSourceBuilder
      */
     void alter(List<String> alterColumns);
+
+    @Select("")
+    List<T> select(SqlCriteriaAssembler assembler);
 
 }

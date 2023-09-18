@@ -24,4 +24,6 @@ public interface ParameterKeys {
     String LIMIT_SIZE = "_limitSize";
 
     String TABLE = "_table";
+
+    String CRITERIA_PARAM = "_criteriaParam";
 }

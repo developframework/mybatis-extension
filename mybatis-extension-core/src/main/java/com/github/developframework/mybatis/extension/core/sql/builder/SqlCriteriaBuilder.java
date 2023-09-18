@@ -5,9 +5,13 @@ import com.github.developframework.mybatis.extension.core.parser.naming.Operate;
 import com.github.developframework.mybatis.extension.core.sql.MixedSqlCriteria;
 import com.github.developframework.mybatis.extension.core.sql.SqlCriteria;
 import com.github.developframework.mybatis.extension.core.sql.SqlFieldPart;
+import com.github.developframework.mybatis.extension.core.structs.EntityDefinition;
+import com.github.developframework.mybatis.extension.core.structs.ParameterKeys;
 import com.github.developframework.mybatis.extension.core.utils.NameUtils;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
+import org.apache.ibatis.binding.MapperMethod;
 import org.apache.ibatis.scripting.xmltags.IfSqlNode;
 import org.apache.ibatis.scripting.xmltags.StaticTextSqlNode;
 
@@ -19,11 +23,16 @@ import java.lang.reflect.Field;
 @RequiredArgsConstructor
 public class SqlCriteriaBuilder {
 
-    private final Class<?> targetClass;
+    private final EntityDefinition entityDefinition;
+
+    @Getter
+    private final MapperMethod.ParamMap<Object> criteriaParamMap = new MapperMethod.ParamMap<>();
+
+    private int criteriaParamIndex;
 
     @SneakyThrows(NoSuchFieldException.class)
     private Field getField(String valueProperty) {
-        return targetClass.getDeclaredField(valueProperty);
+        return entityDefinition.getEntityClass().getDeclaredField(valueProperty);
     }
 
     public SqlCriteria and(SqlCriteria... criteriaChain) {
@@ -42,11 +51,18 @@ public class SqlCriteriaBuilder {
         }
     }
 
-    public SqlCriteria eq(SqlFieldPart fieldPart, String valueProperty) {
+    public SqlCriteria eq(SqlFieldPart fieldPart, Object value) {
+        final String paramName = collectParam(value);
         return () ->
                 interval -> {
-                    final String content = Operate.EQ.getFormat().formatted(fieldPart.toSql(), NameUtils.placeholder(valueProperty));
-                    return new IfSqlNode(new StaticTextSqlNode(content), valueProperty + "neq null");
+                    final String content = Operate.EQ.getFormat().formatted(fieldPart.toSql(), NameUtils.placeholder(paramName));
+                    return new IfSqlNode(new StaticTextSqlNode(content), paramName + " neq null");
                 };
+    }
+
+    private String collectParam(Object value) {
+        String paramName = ParameterKeys.CRITERIA_PARAM + criteriaParamIndex++;
+        criteriaParamMap.put(paramName, value);
+        return paramName;
     }
 }

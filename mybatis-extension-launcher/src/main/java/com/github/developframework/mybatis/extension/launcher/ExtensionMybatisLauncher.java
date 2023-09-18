@@ -2,6 +2,8 @@ package com.github.developframework.mybatis.extension.launcher;
 
 import com.github.developframework.mybatis.extension.core.DatabaseDDLExecutor;
 import com.github.developframework.mybatis.extension.core.MybatisExtensionCore;
+import com.github.developframework.mybatis.extension.core.interceptors.MybatisExtensionInterceptor;
+import com.github.developframework.mybatis.extension.core.interceptors.inner.SqlCriteriaAssemblerInnerInterceptor;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import org.apache.ibatis.mapping.Environment;
@@ -13,6 +15,7 @@ import org.apache.ibatis.type.TypeAliasRegistry;
 import org.apache.ibatis.type.TypeHandlerRegistry;
 
 import javax.sql.DataSource;
+import java.util.List;
 
 /**
  * @author qiushui on 2023-08-30.
@@ -28,12 +31,22 @@ public class ExtensionMybatisLauncher {
         Configuration configuration = buildConfiguration(dataSource);
         configureTypeHandlers(configuration);
         configureTypeAliases(configuration);
+        // 配置拦截器
+        final MybatisExtensionInterceptor mybatisExtensionInterceptor = initializeInterceptor(configuration);
         // 自定义配置
         if (customize != null) {
             customize.handleConfiguration(configuration);
         }
         SqlSessionFactory sqlSessionFactory = new SqlSessionFactoryBuilder().build(configuration);
         MybatisExtensionCore core = new MybatisExtensionCore(sqlSessionFactory);
+
+        // 装配自动注入提供器
+//        final AutoInjectProviderRegistry autoInjectProviderRegistry = assembleAutoInjectProviders(config);
+
+        // 给拦截器设置关联组件
+//        mybatisExtensionInterceptor.setAutoInjectProviderRegistry(autoInjectProviderRegistry);
+        mybatisExtensionInterceptor.setEntityDefinitionRegistry(core.getEntityDefinitionRegistry());
+        mybatisExtensionInterceptor.setMappedStatementMetadataRegistry(core.getMappedStatementMetadataRegistry());
 
         // 执行DDL
         if (customize != null && customize.enableDDL()) {
@@ -70,5 +83,19 @@ public class ExtensionMybatisLauncher {
 
     private static void configureTypeAliases(Configuration configuration) {
         final TypeAliasRegistry typeAliasRegistry = configuration.getTypeAliasRegistry();
+    }
+
+    private static MybatisExtensionInterceptor initializeInterceptor(Configuration configuration) {
+        MybatisExtensionInterceptor mybatisExtensionInterceptor = new MybatisExtensionInterceptor(
+                List.of(
+//                        new OptimisticLockInnerInterceptor(),
+//                        new CompositeIdInnerInterceptor(),
+//                        new PagingInnerInterceptor(),
+                        new SqlCriteriaAssemblerInnerInterceptor()
+//                        new AutoInjectInnerInterceptor()
+                )
+        );
+        configuration.addInterceptor(mybatisExtensionInterceptor);
+        return mybatisExtensionInterceptor;
     }
 }
