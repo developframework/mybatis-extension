@@ -175,6 +175,16 @@ public class SqlCriteriaBuilder {
         };
     }
 
+    public SqlCriteria complex(Function<Interval, SqlNode> function) {
+        return new FieldSqlCriteria(configuration) {
+
+            @Override
+            public Function<Interval, SqlNode> toSqlNode() {
+                return function;
+            }
+        };
+    }
+
     private SqlCriteria simpleCommon(SqlFieldPart fieldPart, Object value, Operate operate) {
         return new FieldSqlCriteria(configuration) {
             @Override

@@ -1,11 +1,14 @@
 package com.github.developframework.mybatis.extension.core.parser.naming;
 
 import com.github.developframework.mybatis.extension.core.annotation.Lock;
+import com.github.developframework.mybatis.extension.core.annotation.SqlCustomized;
 import com.github.developframework.mybatis.extension.core.parser.MapperMethodParseException;
 import com.github.developframework.mybatis.extension.core.parser.MapperMethodParser;
+import com.github.developframework.mybatis.extension.core.sql.builder.SqlCriteriaAssembler;
 import com.github.developframework.mybatis.extension.core.structs.ColumnDefinition;
 import com.github.developframework.mybatis.extension.core.structs.EntityDefinition;
 import com.github.developframework.mybatis.extension.core.structs.MapperMethodParseWrapper;
+import com.github.developframework.mybatis.extension.core.structs.Pager;
 import com.github.developframework.mybatis.extension.core.utils.MybatisUtils;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -323,17 +326,18 @@ public class MapperMethodNamingParser implements MapperMethodParser {
         final Class<?>[] parameterTypes = method.getParameterTypes();
         final List<NamingMethodParameter> namingMethodParameters = new ArrayList<>();
         for (int i = 0, c = method.getParameterCount(); i < c; i++) {
-            namingMethodParameters.add(new NamingMethodParameter(ParamNameResolver.GENERIC_NAME_PREFIX + (i + 1), null));
-
-
-//            if (parameterTypes[i] != Pager.class) {
-//                final SqlCustomized sqlCustomized = (SqlCustomized) ArrayAssist
-//                        .getFirstTrue(method.getParameterAnnotations()[i], it -> it.annotationType() == SqlCustomized.class)
-//                        .orElse(null);
-//                namingMethodParameters.add(new NamingMethodParameter(ParamNameResolver.GENERIC_NAME_PREFIX + (i + 1), sqlCustomized));
-//            } else if (parameterTypes[i] == SelectSqlUnit.class) {
-//                throw new MapperMethodParseException("命名方式和SelectSqlAssembler不能同时使用");
-//            }
+            if (parameterTypes[i] != Pager.class) {
+                SqlCustomized sqlCustomized = null;
+                for (Annotation annotation : method.getParameterAnnotations()[i]) {
+                    if (annotation.annotationType() == SqlCustomized.class) {
+                        sqlCustomized = (SqlCustomized) annotation;
+                        break;
+                    }
+                }
+                namingMethodParameters.add(new NamingMethodParameter(ParamNameResolver.GENERIC_NAME_PREFIX + (i + 1), sqlCustomized));
+            } else if (parameterTypes[i] == SqlCriteriaAssembler.class) {
+                throw new MapperMethodParseException("命名方式和SqlCriteriaAssembler不能同时使用");
+            }
         }
         int i = 1;
         for (NamingElement namingElement : namingElements) {

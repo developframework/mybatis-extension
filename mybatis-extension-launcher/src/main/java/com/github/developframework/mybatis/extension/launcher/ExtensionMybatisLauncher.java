@@ -7,10 +7,7 @@ import com.github.developframework.mybatis.extension.core.autoinject.AuditModify
 import com.github.developframework.mybatis.extension.core.autoinject.AutoInjectProvider;
 import com.github.developframework.mybatis.extension.core.autoinject.AutoInjectProviderRegistry;
 import com.github.developframework.mybatis.extension.core.interceptors.MybatisExtensionInterceptor;
-import com.github.developframework.mybatis.extension.core.interceptors.inner.AutoInjectInnerInterceptor;
-import com.github.developframework.mybatis.extension.core.interceptors.inner.OptimisticLockInnerInterceptor;
-import com.github.developframework.mybatis.extension.core.interceptors.inner.PagingInnerInterceptor;
-import com.github.developframework.mybatis.extension.core.interceptors.inner.SqlCriteriaAssemblerInnerInterceptor;
+import com.github.developframework.mybatis.extension.core.interceptors.inner.*;
 import com.github.developframework.mybatis.extension.core.typehandlers.StringArrayTypeHandler;
 import com.github.developframework.mybatis.extension.core.typehandlers.StringListTypeHandler;
 import com.github.developframework.mybatis.extension.core.typehandlers.StringSetTypeHandler;
@@ -102,7 +99,7 @@ public class ExtensionMybatisLauncher {
         MybatisExtensionInterceptor mybatisExtensionInterceptor = new MybatisExtensionInterceptor(
                 List.of(
                         new OptimisticLockInnerInterceptor(),
-//                        new CompositeIdInnerInterceptor(),
+                        new CompositeIdInnerInterceptor(),
                         new PagingInnerInterceptor(),
                         new SqlCriteriaAssemblerInnerInterceptor(),
                         new AutoInjectInnerInterceptor()
