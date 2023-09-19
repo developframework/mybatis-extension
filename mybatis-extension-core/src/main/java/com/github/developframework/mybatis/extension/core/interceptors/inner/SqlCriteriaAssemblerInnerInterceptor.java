@@ -7,6 +7,7 @@ import com.github.developframework.mybatis.extension.core.interceptors.Intercept
 import com.github.developframework.mybatis.extension.core.parser.naming.Interval;
 import com.github.developframework.mybatis.extension.core.sql.MixedSqlCriteria;
 import com.github.developframework.mybatis.extension.core.sql.SqlCriteria;
+import com.github.developframework.mybatis.extension.core.sql.SqlSortPart;
 import com.github.developframework.mybatis.extension.core.sql.builder.SqlCriteriaAssembler;
 import com.github.developframework.mybatis.extension.core.sql.builder.SqlCriteriaBuilder;
 import com.github.developframework.mybatis.extension.core.sql.builder.SqlRoot;
@@ -17,9 +18,12 @@ import org.apache.ibatis.binding.MapperMethod;
 import org.apache.ibatis.builder.StaticSqlSource;
 import org.apache.ibatis.mapping.MappedStatement;
 import org.apache.ibatis.mapping.SqlSource;
+import org.apache.ibatis.reflection.SystemMetaObject;
+import org.apache.ibatis.scripting.defaults.RawSqlSource;
 import org.apache.ibatis.scripting.xmltags.*;
 import org.apache.ibatis.session.Configuration;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -36,9 +40,11 @@ public class SqlCriteriaAssemblerInnerInterceptor implements InnerInterceptor {
         final Object parameter = args[1];
         final SqlCriteriaAssembler sqlCriteriaAssembler = MybatisUtils.find(parameter, SqlCriteriaAssembler.class);
         if (sqlCriteriaAssembler != null) {
+            MappedStatement mappedStatement = (MappedStatement) args[0];
+            final Configuration configuration = mappedStatement.getConfiguration();
             final EntityDefinition entityDefinition = context.getEntityDefinition();
             final SqlRoot root = new SqlRoot(entityDefinition);
-            final SqlCriteriaBuilder builder = new SqlCriteriaBuilder(entityDefinition);
+            final SqlCriteriaBuilder builder = new SqlCriteriaBuilder(configuration, entityDefinition);
             SqlCriteria sqlCriteria = sqlCriteriaAssembler.assemble(root, builder);
 
             // 多租户
@@ -52,16 +58,18 @@ public class SqlCriteriaAssemblerInnerInterceptor implements InnerInterceptor {
                         })
                         .toArray(SqlCriteria[]::new);
                 if (sqlCriteria == null) {
-                    sqlCriteria = new MixedSqlCriteria(Interval.AND, addSqlCriterias);
+                    sqlCriteria = new MixedSqlCriteria(configuration, Interval.AND, addSqlCriterias);
                 } else if (addSqlCriterias.length == 1) {
-                    sqlCriteria = new MixedSqlCriteria(Interval.AND, new SqlCriteria[]{addSqlCriterias[0], sqlCriteria});
+                    sqlCriteria = new MixedSqlCriteria(configuration, Interval.AND, new SqlCriteria[]{addSqlCriterias[0], sqlCriteria});
                 } else {
-                    sqlCriteria = new MixedSqlCriteria(Interval.AND, ArrayUtils.add(addSqlCriterias, sqlCriteria));
+                    sqlCriteria = new MixedSqlCriteria(configuration, Interval.AND, ArrayUtils.add(addSqlCriterias, sqlCriteria));
                 }
             }
 
+            final SqlSortPart sqlSortPart = MybatisUtils.find(parameter, SqlSortPart.class);
+
             // 改写MappedStatement
-            args[0] = buildMappedStatement((MappedStatement) args[0], entityDefinition, sqlCriteria);
+            args[0] = buildMappedStatement(mappedStatement, entityDefinition, sqlCriteria, sqlSortPart);
 
             // 填充参数
             final MapperMethod.ParamMap<Object> criteriaParamMap = builder.getCriteriaParamMap();
@@ -74,31 +82,46 @@ public class SqlCriteriaAssemblerInnerInterceptor implements InnerInterceptor {
         return innerInvocation.proceed();
     }
 
+    private boolean checkSqlEmpty(MappedStatement ms) {
+        SqlSource sqlSource = ms.getSqlSource();
+        if (sqlSource instanceof RawSqlSource) {
+            sqlSource = (SqlSource) SystemMetaObject.forObject(sqlSource).getValue("sqlSource");
+            if (sqlSource instanceof StaticSqlSource) {
+                return ((String) SystemMetaObject.forObject(sqlSource).getValue("sql")).isEmpty();
+            }
+        }
+        return false;
+    }
+
     /**
      * 构建一个新的MappedStatement
      */
-    private MappedStatement buildMappedStatement(MappedStatement ms, EntityDefinition entityDefinition, SqlCriteria sqlCriteria) {
+    private MappedStatement buildMappedStatement(MappedStatement mappedStatement, EntityDefinition entityDefinition, SqlCriteria sqlCriteria, SqlSortPart sqlSortPart) {
         final String basicSql = "SELECT * FROM " + entityDefinition.wrapTableName();
-        final SqlNode sqlNode = sqlCriteria == null ? null : sqlCriteria.toSqlNode().apply(null);
-        final Configuration configuration = ms.getConfiguration();
+        final SqlNode sqlNode = sqlCriteria == null ? null : sqlCriteria.toSqlNode().apply(Interval.AND);
+        final String orderBySql = sqlSortPart == null ? "" : sqlSortPart.toSql(entityDefinition);
+        final Configuration configuration = mappedStatement.getConfiguration();
         final SqlSource sqlSource;
         if (sqlNode == null) {
-            sqlSource = new StaticSqlSource(configuration, basicSql);
+            sqlSource = new StaticSqlSource(configuration, basicSql + orderBySql);
         } else {
-            WhereSqlNode whereSqlNode = new WhereSqlNode(configuration, sqlNode);
-            sqlSource = new DynamicSqlSource(configuration, new MixedSqlNode(List.of(new StaticTextSqlNode(basicSql), whereSqlNode)));
+            List<SqlNode> sqlNodes = new ArrayList<>(3);
+            sqlNodes.add(new StaticTextSqlNode(basicSql));
+            sqlNodes.add(new WhereSqlNode(configuration, sqlNode));
+            sqlNodes.add(new StaticTextSqlNode(orderBySql));
+            sqlSource = new DynamicSqlSource(configuration, new MixedSqlNode(sqlNodes));
         }
-        return new MappedStatement.Builder(configuration, ms.getId(), sqlSource, ms.getSqlCommandType())
-                .resource(ms.getResource())
-                .fetchSize(ms.getFetchSize())
-                .statementType(ms.getStatementType())
-                .timeout(ms.getTimeout())
-                .parameterMap(ms.getParameterMap())
-                .resultMaps(ms.getResultMaps())
-                .resultSetType(ms.getResultSetType())
-                .cache(ms.getCache())
-                .flushCacheRequired(ms.isFlushCacheRequired())
-                .useCache(ms.isUseCache())
+        return new MappedStatement.Builder(configuration, mappedStatement.getId(), sqlSource, mappedStatement.getSqlCommandType())
+                .resource(mappedStatement.getResource())
+                .fetchSize(mappedStatement.getFetchSize())
+                .statementType(mappedStatement.getStatementType())
+                .timeout(mappedStatement.getTimeout())
+                .parameterMap(mappedStatement.getParameterMap())
+                .resultMaps(mappedStatement.getResultMaps())
+                .resultSetType(mappedStatement.getResultSetType())
+                .cache(mappedStatement.getCache())
+                .flushCacheRequired(mappedStatement.isFlushCacheRequired())
+                .useCache(mappedStatement.isUseCache())
                 .build();
     }
 }

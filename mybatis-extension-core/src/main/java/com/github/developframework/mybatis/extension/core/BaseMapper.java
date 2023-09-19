@@ -1,10 +1,8 @@
 package com.github.developframework.mybatis.extension.core;
 
+import com.github.developframework.mybatis.extension.core.sql.SqlSortPart;
 import com.github.developframework.mybatis.extension.core.sql.builder.SqlCriteriaAssembler;
-import com.github.developframework.mybatis.extension.core.structs.ColumnDesc;
-import com.github.developframework.mybatis.extension.core.structs.IndexDesc;
-import com.github.developframework.mybatis.extension.core.structs.LockType;
-import com.github.developframework.mybatis.extension.core.structs.ParameterKeys;
+import com.github.developframework.mybatis.extension.core.structs.*;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
 
@@ -18,6 +16,8 @@ import java.util.Optional;
  * @see com.github.developframework.mybatis.extension.core.parser.def.BaseMapperDefaultParser
  */
 public interface BaseMapper<T, ID extends Serializable> {
+
+    String AUTOMATIC_SQL = "";
 
     /**
      * @see com.github.developframework.mybatis.extension.core.parser.def.InsertSqlSourceBuilder
@@ -109,7 +109,20 @@ public interface BaseMapper<T, ID extends Serializable> {
      */
     void alter(List<String> alterColumns);
 
-    @Select("")
-    List<T> select(SqlCriteriaAssembler assembler);
+    /**
+     * 拦截器自动拼装简单查询SQL
+     *
+     * @see com.github.developframework.mybatis.extension.core.interceptors.inner.SqlCriteriaAssemblerInnerInterceptor
+     */
+    @Select(AUTOMATIC_SQL)
+    List<T> select(SqlCriteriaAssembler assembler, SqlSortPart sort);
+
+    /**
+     * 拦截器自动拼装简单分页查询SQL
+     *
+     * @see com.github.developframework.mybatis.extension.core.interceptors.inner.PagingInnerInterceptor
+     */
+    @Select(AUTOMATIC_SQL)
+    Page<T> selectPager(Pager pager, SqlCriteriaAssembler assembler, SqlSortPart sort);
 
 }

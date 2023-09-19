@@ -2,7 +2,7 @@ package com.github.developframework.mybatis.extension.core.typehandlers;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.developframework.mybatis.extension.core.structs.types.JsonRaw;
+import com.github.developframework.mybatis.extension.core.typehandlers.types.JsonRaw;
 import lombok.RequiredArgsConstructor;
 import org.apache.ibatis.type.BaseTypeHandler;
 import org.apache.ibatis.type.JdbcType;

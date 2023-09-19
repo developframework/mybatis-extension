@@ -20,7 +20,7 @@ public class SqlRoot {
 
     public SqlFieldPart get(String property) {
         final ColumnDefinition columnDefinition = entityDefinition.getColumnDefinition(property);
-        return new SqlField(columnDefinition.getColumn(), null, null);
+        return new SqlField(columnDefinition, null, null);
     }
 
     public SqlFieldPart function(String function, Object... args) {
@@ -35,6 +35,8 @@ public class SqlRoot {
                                 } else {
                                     return NameUtils.literal(property);
                                 }
+                            } else if (arg instanceof SqlFunction sf) {
+                                return sf.toSql();
                             } else {
                                 return arg.toString();
                             }

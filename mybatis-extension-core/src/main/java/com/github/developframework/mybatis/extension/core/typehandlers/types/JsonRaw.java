@@ -1,4 +1,4 @@
-package com.github.developframework.mybatis.extension.core.structs.types;
+package com.github.developframework.mybatis.extension.core.typehandlers.types;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;

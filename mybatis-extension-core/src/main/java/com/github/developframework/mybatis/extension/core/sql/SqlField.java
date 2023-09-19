@@ -1,5 +1,6 @@
 package com.github.developframework.mybatis.extension.core.sql;
 
+import com.github.developframework.mybatis.extension.core.structs.ColumnDefinition;
 import com.github.developframework.mybatis.extension.core.utils.NameUtils;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -11,7 +12,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class SqlField implements SqlFieldPart {
 
-    private final String fieldName;
+    private final ColumnDefinition columnDefinition;
 
     private final String tableAlias;
 
@@ -21,9 +22,9 @@ public class SqlField implements SqlFieldPart {
     public String toSql() {
         String sql;
         if (tableAlias == null) {
-            sql = NameUtils.wrap(fieldName);
+            sql = columnDefinition.wrapColumn();
         } else {
-            sql = NameUtils.wrap(tableAlias) + "." + NameUtils.wrap(fieldName);
+            sql = NameUtils.wrap(tableAlias) + "." + columnDefinition.wrapColumn();
         }
         if (as != null) {
             sql += " AS " + as;
