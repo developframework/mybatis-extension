@@ -1,6 +1,10 @@
 package com.github.developframework.mybatis.extension.launcher;
 
+import com.github.developframework.mybatis.extension.core.autoinject.AutoInjectProvider;
 import org.apache.ibatis.session.Configuration;
+
+import java.util.Collections;
+import java.util.List;
 
 /**
  * @author qiushui on 2023-08-30.
@@ -12,5 +16,9 @@ public interface MybatisCustomize {
 
     default boolean enableDDL() {
         return false;
+    }
+
+    default List<? extends AutoInjectProvider> customAutoInjectProviders() {
+        return Collections.emptyList();
     }
 }

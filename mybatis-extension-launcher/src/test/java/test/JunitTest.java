@@ -1,5 +1,6 @@
 package test;
 
+import com.github.developframework.mybatis.extension.core.autoinject.AutoInjectProvider;
 import com.github.developframework.mybatis.extension.launcher.DataSourceMetadata;
 import com.github.developframework.mybatis.extension.launcher.ExtensionMybatisLauncher;
 import com.github.developframework.mybatis.extension.launcher.MybatisCustomize;
@@ -35,13 +36,25 @@ public class JunitTest {
             public boolean enableDDL() {
                 return false;
             }
+
+            @Override
+            public List<? extends AutoInjectProvider> customAutoInjectProviders() {
+                return List.of(
+                        new DomainIdAutoInjectProvider()
+                );
+            }
         });
         try (SqlSession sqlSession = sqlSessionFactory.openSession(true)) {
             final GoodsMapper mapper = sqlSession.getMapper(GoodsMapper.class);
-            final List<Goods> list = mapper.select((root, builder) -> {
-                return builder.eq(root.get(Goods.Fields.goodsName), "面包");
-            });
-            list.forEach(System.out::println);
+            Goods goods = new Goods();
+            goods.setGoodsName("雪碧");
+            goods.setQuantity(4);
+            mapper.insert(goods);
+
+//            final List<Goods> list = mapper.select((root, builder) -> {
+//                return builder.eq(root.get(Goods.Fields.goodsName), "面包");
+//            });
+//            list.forEach(System.out::println);
         }
     }
 }

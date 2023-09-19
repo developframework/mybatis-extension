@@ -55,7 +55,7 @@ public class SqlCriteriaBuilder {
         final String paramName = collectParam(value);
         return () ->
                 interval -> {
-                    final String content = Operate.EQ.getFormat().formatted(fieldPart.toSql(), NameUtils.placeholder(paramName));
+                    final String content = interval.getText() + Operate.EQ.getFormat().formatted(fieldPart.toSql(), NameUtils.placeholder(paramName));
                     return new IfSqlNode(new StaticTextSqlNode(content), paramName + " neq null");
                 };
     }

@@ -2,7 +2,12 @@ package com.github.developframework.mybatis.extension.launcher;
 
 import com.github.developframework.mybatis.extension.core.DatabaseDDLExecutor;
 import com.github.developframework.mybatis.extension.core.MybatisExtensionCore;
+import com.github.developframework.mybatis.extension.core.autoinject.AuditCreateTimeAutoInjectProvider;
+import com.github.developframework.mybatis.extension.core.autoinject.AuditModifyTimeAutoInjectProvider;
+import com.github.developframework.mybatis.extension.core.autoinject.AutoInjectProvider;
+import com.github.developframework.mybatis.extension.core.autoinject.AutoInjectProviderRegistry;
 import com.github.developframework.mybatis.extension.core.interceptors.MybatisExtensionInterceptor;
+import com.github.developframework.mybatis.extension.core.interceptors.inner.AutoInjectInnerInterceptor;
 import com.github.developframework.mybatis.extension.core.interceptors.inner.SqlCriteriaAssemblerInnerInterceptor;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
@@ -41,10 +46,10 @@ public class ExtensionMybatisLauncher {
         MybatisExtensionCore core = new MybatisExtensionCore(sqlSessionFactory);
 
         // 装配自动注入提供器
-//        final AutoInjectProviderRegistry autoInjectProviderRegistry = assembleAutoInjectProviders(config);
+        final AutoInjectProviderRegistry autoInjectProviderRegistry = assembleAutoInjectProviders(customize);
 
         // 给拦截器设置关联组件
-//        mybatisExtensionInterceptor.setAutoInjectProviderRegistry(autoInjectProviderRegistry);
+        mybatisExtensionInterceptor.setAutoInjectProviderRegistry(autoInjectProviderRegistry);
         mybatisExtensionInterceptor.setEntityDefinitionRegistry(core.getEntityDefinitionRegistry());
         mybatisExtensionInterceptor.setMappedStatementMetadataRegistry(core.getMappedStatementMetadataRegistry());
 
@@ -91,11 +96,23 @@ public class ExtensionMybatisLauncher {
 //                        new OptimisticLockInnerInterceptor(),
 //                        new CompositeIdInnerInterceptor(),
 //                        new PagingInnerInterceptor(),
-                        new SqlCriteriaAssemblerInnerInterceptor()
-//                        new AutoInjectInnerInterceptor()
+                        new SqlCriteriaAssemblerInnerInterceptor(),
+                        new AutoInjectInnerInterceptor()
                 )
         );
         configuration.addInterceptor(mybatisExtensionInterceptor);
         return mybatisExtensionInterceptor;
+    }
+
+    private static AutoInjectProviderRegistry assembleAutoInjectProviders(MybatisCustomize config) {
+        AutoInjectProviderRegistry autoInjectProviderRegistry = new AutoInjectProviderRegistry();
+        autoInjectProviderRegistry.put(AuditCreateTimeAutoInjectProvider.class, new AuditCreateTimeAutoInjectProvider());
+        autoInjectProviderRegistry.put(AuditModifyTimeAutoInjectProvider.class, new AuditModifyTimeAutoInjectProvider());
+        if (config != null) {
+            for (AutoInjectProvider provider : config.customAutoInjectProviders()) {
+                autoInjectProviderRegistry.put(provider.getClass(), provider);
+            }
+        }
+        return autoInjectProviderRegistry;
     }
 }
