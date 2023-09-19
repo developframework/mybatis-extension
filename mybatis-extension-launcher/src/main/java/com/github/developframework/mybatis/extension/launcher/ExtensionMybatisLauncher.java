@@ -8,7 +8,11 @@ import com.github.developframework.mybatis.extension.core.autoinject.AutoInjectP
 import com.github.developframework.mybatis.extension.core.autoinject.AutoInjectProviderRegistry;
 import com.github.developframework.mybatis.extension.core.interceptors.MybatisExtensionInterceptor;
 import com.github.developframework.mybatis.extension.core.interceptors.inner.AutoInjectInnerInterceptor;
+import com.github.developframework.mybatis.extension.core.interceptors.inner.OptimisticLockInnerInterceptor;
 import com.github.developframework.mybatis.extension.core.interceptors.inner.SqlCriteriaAssemblerInnerInterceptor;
+import com.github.developframework.mybatis.extension.core.typehandlers.StringArrayTypeHandler;
+import com.github.developframework.mybatis.extension.core.typehandlers.StringListTypeHandler;
+import com.github.developframework.mybatis.extension.core.typehandlers.StringSetTypeHandler;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import org.apache.ibatis.mapping.Environment;
@@ -34,19 +38,22 @@ public class ExtensionMybatisLauncher {
 
     public static SqlSessionFactory open(DataSource dataSource, MybatisCustomize customize) {
         Configuration configuration = buildConfiguration(dataSource);
+        // 配置类型转换器
         configureTypeHandlers(configuration);
+        // 配置类型别名
         configureTypeAliases(configuration);
         // 配置拦截器
         final MybatisExtensionInterceptor mybatisExtensionInterceptor = initializeInterceptor(configuration);
+        // 装配自动注入提供器
+        final AutoInjectProviderRegistry autoInjectProviderRegistry = assembleAutoInjectProviders(customize);
         // 自定义配置
         if (customize != null) {
             customize.handleConfiguration(configuration);
         }
+        // 构建SqlSessionFactory
         SqlSessionFactory sqlSessionFactory = new SqlSessionFactoryBuilder().build(configuration);
+        // 扩展核心启动
         MybatisExtensionCore core = new MybatisExtensionCore(sqlSessionFactory);
-
-        // 装配自动注入提供器
-        final AutoInjectProviderRegistry autoInjectProviderRegistry = assembleAutoInjectProviders(customize);
 
         // 给拦截器设置关联组件
         mybatisExtensionInterceptor.setAutoInjectProviderRegistry(autoInjectProviderRegistry);
@@ -81,9 +88,9 @@ public class ExtensionMybatisLauncher {
 
     private static void configureTypeHandlers(Configuration configuration) {
         final TypeHandlerRegistry typeHandlerRegistry = configuration.getTypeHandlerRegistry();
-//        typeHandlerRegistry.register(StringArrayTypeHandler.class);
-//        typeHandlerRegistry.register(StringListTypeHandler.class);
-//        typeHandlerRegistry.register(StringSetTypeHandler.class);
+        typeHandlerRegistry.register(StringArrayTypeHandler.class);
+        typeHandlerRegistry.register(StringListTypeHandler.class);
+        typeHandlerRegistry.register(StringSetTypeHandler.class);
     }
 
     private static void configureTypeAliases(Configuration configuration) {
@@ -93,7 +100,7 @@ public class ExtensionMybatisLauncher {
     private static MybatisExtensionInterceptor initializeInterceptor(Configuration configuration) {
         MybatisExtensionInterceptor mybatisExtensionInterceptor = new MybatisExtensionInterceptor(
                 List.of(
-//                        new OptimisticLockInnerInterceptor(),
+                        new OptimisticLockInnerInterceptor(),
 //                        new CompositeIdInnerInterceptor(),
 //                        new PagingInnerInterceptor(),
                         new SqlCriteriaAssemblerInnerInterceptor(),
@@ -104,12 +111,12 @@ public class ExtensionMybatisLauncher {
         return mybatisExtensionInterceptor;
     }
 
-    private static AutoInjectProviderRegistry assembleAutoInjectProviders(MybatisCustomize config) {
+    private static AutoInjectProviderRegistry assembleAutoInjectProviders(MybatisCustomize customize) {
         AutoInjectProviderRegistry autoInjectProviderRegistry = new AutoInjectProviderRegistry();
         autoInjectProviderRegistry.put(AuditCreateTimeAutoInjectProvider.class, new AuditCreateTimeAutoInjectProvider());
         autoInjectProviderRegistry.put(AuditModifyTimeAutoInjectProvider.class, new AuditModifyTimeAutoInjectProvider());
-        if (config != null) {
-            for (AutoInjectProvider provider : config.customAutoInjectProviders()) {
+        if (customize != null) {
+            for (AutoInjectProvider provider : customize.customAutoInjectProviders()) {
                 autoInjectProviderRegistry.put(provider.getClass(), provider);
             }
         }

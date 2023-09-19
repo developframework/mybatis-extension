@@ -83,6 +83,7 @@ public class MybatisExtensionInterceptor implements Interceptor {
         final Class<?> entityClass = metadata.getEntityClass();
         if (entityClass != null) {
             final InterceptContext context = new InterceptContext();
+            context.setMappedStatementMetadata(metadata);
             context.setEntityDefinition(entityDefinitionRegistry.get(entityClass));
             context.setAutoInjectProviderRegistry(autoInjectProviderRegistry);
             switch (invocation.getMethod().getName()) {
