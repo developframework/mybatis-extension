@@ -7,6 +7,8 @@
     <file url="file://$PROJECT_DIR$/mybatis-extension-launcher/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/mybatis-extension-launcher/src/test/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/mybatis-extension-launcher/src/test/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/mybatis-extension-spring-boot-starter/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/mybatis-extension-spring-boot-starter/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/src/main/resources" charset="UTF-8" />
   </component>

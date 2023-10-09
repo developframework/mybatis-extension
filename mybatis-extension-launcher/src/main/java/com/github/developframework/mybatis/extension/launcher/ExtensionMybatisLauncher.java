@@ -50,6 +50,24 @@ public class ExtensionMybatisLauncher {
         }
         // 构建SqlSessionFactory
         SqlSessionFactory sqlSessionFactory = new SqlSessionFactoryBuilder().build(configuration);
+
+        // 配置SqlSessionFactory
+        configureSqlSessionFactory(
+                sqlSessionFactory,
+                mybatisExtensionInterceptor,
+                autoInjectProviderRegistry,
+                customize != null && customize.enableDDL()
+        );
+
+        return sqlSessionFactory;
+    }
+
+    public static void configureSqlSessionFactory(
+            SqlSessionFactory sqlSessionFactory,
+            MybatisExtensionInterceptor mybatisExtensionInterceptor,
+            AutoInjectProviderRegistry autoInjectProviderRegistry,
+            boolean enableDDL
+    ) {
         // 扩展核心启动
         MybatisExtensionCore core = new MybatisExtensionCore(sqlSessionFactory);
 
@@ -59,12 +77,12 @@ public class ExtensionMybatisLauncher {
         mybatisExtensionInterceptor.setMappedStatementMetadataRegistry(core.getMappedStatementMetadataRegistry());
 
         // 执行DDL
-        if (customize != null && customize.enableDDL()) {
+        if (enableDDL) {
             DatabaseDDLExecutor databaseDDLExecutor = new DatabaseDDLExecutor(sqlSessionFactory, core.getEntityDefinitionRegistry());
             databaseDDLExecutor.executeDDL();
         }
-        return sqlSessionFactory;
     }
+
 
     private static DataSource buildDefaultDataSource(DataSourceMetadata dataSourceMetadata) {
         HikariConfig hikariConfig = new HikariConfig();
