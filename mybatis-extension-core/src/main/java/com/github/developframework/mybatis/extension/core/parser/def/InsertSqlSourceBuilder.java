@@ -30,7 +30,7 @@ public class InsertSqlSourceBuilder implements SqlSourceBuilder {
 
         for (int i = 0; i < columnDefinitions.size(); i++) {
             final ColumnDefinition columnDefinition = columnDefinitions.get(i);
-            if (!columnDefinition.getColumnBuildMetadata().autoIncrement) {
+            if (!columnDefinition.isAutoIncrement()) {
                 fields.append(columnDefinition.wrapColumn());
                 values.append(columnDefinition.placeholder());
                 if (i < columnDefinitions.size() - 1) {

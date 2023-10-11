@@ -70,7 +70,7 @@ public class ColumnDesc {
         columnDesc.setNull(columnBuildMetadata.nullable ? "YES" : "NO");
         columnDesc.setKey(columnDefinition.isPrimaryKey() ? "PRI" : "");
         columnDesc.setDefault(columnBuildMetadata.nullable ? columnBuildMetadata.defaultValue : null);
-        columnDesc.setExtra(columnBuildMetadata.autoIncrement ? "auto_increment" : "");
+        columnDesc.setExtra(columnDefinition.isAutoIncrement() ? "auto_increment" : "");
         columnDesc.setComment(columnBuildMetadata.comment);
         return columnDesc;
     }

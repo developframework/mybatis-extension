@@ -53,7 +53,7 @@ public class SqlCriteriaAssemblerInnerInterceptor implements InnerInterceptor {
                         .stream(entityDefinition.getMultipleTenantColumnDefinitions())
                         .map(cd -> {
                             final AutoInjectProvider autoInjectProvider = context.getAutoInjectProviderRegistry().getAutoInjectProvider(cd.getAutoInjectProviderClass());
-                            final Object provideValue = autoInjectProvider.provide(entityDefinition, cd.getPropertyType());
+                            final Object provideValue = autoInjectProvider.provide(entityDefinition, cd, parameter);
                             return builder.eq(root.get(cd.getProperty()), provideValue);
                         })
                         .toArray(SqlCriteria[]::new);

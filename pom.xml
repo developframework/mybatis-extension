@@ -26,7 +26,7 @@
         <lombok.version>1.18.28</lombok.version>
         <commons-lang3.version>3.12.0</commons-lang3.version>
         <slf4j-api.version>2.0.7</slf4j-api.version>
-        <jackson.version>2.15.2</jackson.version>
+        <jackson.version>2.15.0</jackson.version>
     </properties>
 
     <dependencyManagement>
@@ -86,4 +86,23 @@
             </dependency>
         </dependencies>
     </dependencyManagement>
+
+    <build>
+        <plugins>
+            <!-- 打包含源码包 -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>attach-sources</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>jar-no-fork</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
 </project>

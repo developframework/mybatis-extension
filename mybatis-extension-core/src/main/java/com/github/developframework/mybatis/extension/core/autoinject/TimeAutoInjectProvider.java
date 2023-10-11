@@ -1,5 +1,6 @@
 package com.github.developframework.mybatis.extension.core.autoinject;
 
+import com.github.developframework.mybatis.extension.core.structs.ColumnDefinition;
 import com.github.developframework.mybatis.extension.core.structs.EntityDefinition;
 
 import java.lang.reflect.Type;
@@ -11,7 +12,8 @@ import java.time.*;
 public abstract class TimeAutoInjectProvider implements AutoInjectProvider {
 
     @Override
-    public final Object provide(EntityDefinition entityDefinition, Type fieldType) {
+    public final Object provide(EntityDefinition entityDefinition, ColumnDefinition columnDefinition, Object entity) {
+        final Type fieldType = columnDefinition.getPropertyType();
         if (fieldType == LocalDateTime.class) {
             return LocalDateTime.now();
         } else if (fieldType == ZonedDateTime.class) {

@@ -90,7 +90,7 @@ public class AutoInjectInnerInterceptor implements InnerInterceptor {
             newParameter.putAll((Map<String, Object>) parameter);
             final AutoInjectProviderRegistry autoInjectProviderRegistry = context.getAutoInjectProviderRegistry();
             for (ColumnDefinition columnDefinition : entityDefinition.getMultipleTenantColumnDefinitions()) {
-                final Object value = getProviderValue(autoInjectProviderRegistry, entityDefinition, columnDefinition);
+                final Object value = getProviderValue(autoInjectProviderRegistry, entityDefinition, columnDefinition, parameter);
                 newParameter.put(columnDefinition.getProperty(), value);
             }
             return newParameter;
@@ -115,7 +115,7 @@ public class AutoInjectInnerInterceptor implements InnerInterceptor {
                         }
                     }
 
-                    final Object value = matchColumnDefinition == null ? parameter : getProviderValue(autoInjectProviderRegistry, entityDefinition, matchColumnDefinition);
+                    final Object value = matchColumnDefinition == null ? parameter : getProviderValue(autoInjectProviderRegistry, entityDefinition, matchColumnDefinition, parameter);
                     newParameter.put(property, value);
                 }
                 return newParameter;
@@ -123,11 +123,11 @@ public class AutoInjectInnerInterceptor implements InnerInterceptor {
         }
     }
 
-    private Object getProviderValue(AutoInjectProviderRegistry autoInjectProviderRegistry, EntityDefinition entityDefinition, ColumnDefinition columnDefinition) {
+    private Object getProviderValue(AutoInjectProviderRegistry autoInjectProviderRegistry, EntityDefinition entityDefinition, ColumnDefinition columnDefinition, Object parameter) {
         final Class<? extends AutoInjectProvider> autoInjectProviderClass = columnDefinition.getAutoInjectProviderClass();
         if (autoInjectProviderClass != null) {
             final AutoInjectProvider autoInjectProvider = autoInjectProviderRegistry.getAutoInjectProvider(autoInjectProviderClass);
-            return autoInjectProvider.provide(entityDefinition, columnDefinition.getPropertyType());
+            return autoInjectProvider.provide(entityDefinition, columnDefinition, parameter);
         }
         return null;
     }
@@ -142,7 +142,7 @@ public class AutoInjectInnerInterceptor implements InnerInterceptor {
                     Object value = field.get(entity);
                     // 原来没值
                     if (value == null) {
-                        value = autoInjectProvider.provide(entityDefinition, columnDefinition.getPropertyType());
+                        value = autoInjectProvider.provide(entityDefinition, columnDefinition, entity);
                         field.set(entity, value);
                     }
                 } catch (NoSuchFieldException | IllegalAccessException e) {

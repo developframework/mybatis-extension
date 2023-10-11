@@ -18,7 +18,7 @@ public class ColumnMybatisPlaceholder {
         StringBuilder sb = new StringBuilder();
         sb.append("#{");
         sb.append(param);
-        if (typeHandlerClass != null && TypeHandler.class.isAssignableFrom(typeHandlerClass)) {
+        if (typeHandlerClass != null && typeHandlerClass != TypeHandler.class) {
             sb.append(",typeHandler=").append(typeHandlerClass.getName());
         }
         if (javaType != null && !javaType.isEmpty()) {

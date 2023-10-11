@@ -17,8 +17,6 @@ public class ColumnBuildMetadata {
 
     public boolean nullable;
 
-    public boolean autoIncrement;
-
     public String defaultValue;
 
     public String comment;

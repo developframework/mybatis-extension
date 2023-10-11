@@ -2,10 +2,10 @@ package com.github.developframework.mybatis.extension.launcher;
 
 import com.github.developframework.mybatis.extension.core.DatabaseDDLExecutor;
 import com.github.developframework.mybatis.extension.core.MybatisExtensionCore;
-import com.github.developframework.mybatis.extension.core.autoinject.AuditCreateTimeAutoInjectProvider;
-import com.github.developframework.mybatis.extension.core.autoinject.AuditModifyTimeAutoInjectProvider;
-import com.github.developframework.mybatis.extension.core.autoinject.AutoInjectProvider;
-import com.github.developframework.mybatis.extension.core.autoinject.AutoInjectProviderRegistry;
+import com.github.developframework.mybatis.extension.core.autoinject.*;
+import com.github.developframework.mybatis.extension.core.idgenerator.AutoIncrementIdGenerator;
+import com.github.developframework.mybatis.extension.core.idgenerator.IdGenerator;
+import com.github.developframework.mybatis.extension.core.idgenerator.IdGeneratorRegistry;
 import com.github.developframework.mybatis.extension.core.interceptors.MybatisExtensionInterceptor;
 import com.github.developframework.mybatis.extension.core.interceptors.inner.*;
 import com.github.developframework.mybatis.extension.core.typehandlers.StringArrayTypeHandler;
@@ -42,8 +42,11 @@ public class ExtensionMybatisLauncher {
         configureTypeAliases(configuration);
         // 配置拦截器
         final MybatisExtensionInterceptor mybatisExtensionInterceptor = initializeInterceptor(configuration);
+        // ID生成器
+        final IdGeneratorRegistry idGeneratorRegistry = assembleIdGenerators(customize);
         // 装配自动注入提供器
-        final AutoInjectProviderRegistry autoInjectProviderRegistry = assembleAutoInjectProviders(customize);
+        final AutoInjectProviderRegistry autoInjectProviderRegistry = assembleAutoInjectProviders(customize, idGeneratorRegistry);
+
         // 自定义配置
         if (customize != null) {
             customize.handleConfiguration(configuration);
@@ -127,15 +130,27 @@ public class ExtensionMybatisLauncher {
         return mybatisExtensionInterceptor;
     }
 
-    private static AutoInjectProviderRegistry assembleAutoInjectProviders(MybatisCustomize customize) {
+    private static AutoInjectProviderRegistry assembleAutoInjectProviders(MybatisCustomize customize, IdGeneratorRegistry idGeneratorRegistry) {
         AutoInjectProviderRegistry autoInjectProviderRegistry = new AutoInjectProviderRegistry();
         autoInjectProviderRegistry.put(AuditCreateTimeAutoInjectProvider.class, new AuditCreateTimeAutoInjectProvider());
         autoInjectProviderRegistry.put(AuditModifyTimeAutoInjectProvider.class, new AuditModifyTimeAutoInjectProvider());
+        autoInjectProviderRegistry.put(IdGeneratorAutoInjectProvider.class, new IdGeneratorAutoInjectProvider(idGeneratorRegistry));
         if (customize != null) {
             for (AutoInjectProvider provider : customize.customAutoInjectProviders()) {
                 autoInjectProviderRegistry.put(provider.getClass(), provider);
             }
         }
         return autoInjectProviderRegistry;
+    }
+
+    private static IdGeneratorRegistry assembleIdGenerators(MybatisCustomize customize) {
+        IdGeneratorRegistry idGeneratorRegistry = new IdGeneratorRegistry();
+        idGeneratorRegistry.register(new AutoIncrementIdGenerator());
+        if (customize != null) {
+            for (IdGenerator idGenerator : customize.customIdGenerators()) {
+                idGeneratorRegistry.register(idGenerator);
+            }
+        }
+        return idGeneratorRegistry;
     }
 }

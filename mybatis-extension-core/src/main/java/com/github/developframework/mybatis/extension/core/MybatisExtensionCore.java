@@ -48,7 +48,12 @@ public class MybatisExtensionCore {
                     Class<?> entityClass = MybatisUtils.getEntityClass(mapperClass);
                     EntityDefinition entityDefinition = entityDefinitionRegistry.register(entityClass);
 
-                    MapperExtensionBuilder mapperExtensionBuilder = new MapperExtensionBuilder(configuration, mapperClass, entityDefinition, mappedStatementMetadataRegistry);
+                    MapperExtensionBuilder mapperExtensionBuilder = new MapperExtensionBuilder(
+                            configuration,
+                            mapperClass,
+                            entityDefinition,
+                            mappedStatementMetadataRegistry
+                    );
                     mapperExtensionBuilder.parse();
                 } else {
                     // TODO 非BaseMapper的处理方式

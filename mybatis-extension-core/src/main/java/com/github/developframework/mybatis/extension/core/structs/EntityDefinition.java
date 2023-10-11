@@ -1,6 +1,8 @@
 package com.github.developframework.mybatis.extension.core.structs;
 
 import com.github.developframework.mybatis.extension.core.annotation.*;
+import com.github.developframework.mybatis.extension.core.autoinject.IdGeneratorAutoInjectProvider;
+import com.github.developframework.mybatis.extension.core.idgenerator.NoIdGenerator;
 import com.github.developframework.mybatis.extension.core.utils.NameUtils;
 import lombok.Getter;
 import lombok.Setter;
@@ -110,7 +112,6 @@ public class EntityDefinition {
                 // 预备主键字段 字段名为id
                 columnDefinition.setPrimaryKey(true);
                 columnDefinition.setUseGeneratedKey(true);
-                metadata.autoIncrement = true;
                 preparatoryPrimaryKeyColumnDefinition = columnDefinition;
             }
 
@@ -119,7 +120,10 @@ public class EntityDefinition {
             if (id != null) {
                 columnDefinition.setPrimaryKey(true);
                 columnDefinition.setUseGeneratedKey(id.useGeneratedKey());
-                metadata.autoIncrement = true;
+                if (id.idGenerator() != NoIdGenerator.class) {
+                    columnDefinition.setIdGeneratorClass(id.idGenerator());
+                    columnDefinition.setAutoInjectProviderClass(IdGeneratorAutoInjectProvider.class);
+                }
                 primaryKeyColumnDefinitionList.add(columnDefinition);
             }
 
