@@ -2,7 +2,9 @@ package com.github.developframework.mybatis.extension.core.structs;
 
 import com.github.developframework.mybatis.extension.core.annotation.*;
 import com.github.developframework.mybatis.extension.core.autoinject.IdGeneratorAutoInjectProvider;
+import com.github.developframework.mybatis.extension.core.idgenerator.AutoIncrementIdGenerator;
 import com.github.developframework.mybatis.extension.core.idgenerator.NoIdGenerator;
+import com.github.developframework.mybatis.extension.core.utils.MybatisUtils;
 import com.github.developframework.mybatis.extension.core.utils.NameUtils;
 import lombok.Getter;
 import lombok.Setter;
@@ -65,7 +67,7 @@ public class EntityDefinition {
 
         ColumnDefinition versionColumnDefinition = null;
 
-        for (Field field : entityClass.getDeclaredFields()) {
+        for (Field field : MybatisUtils.getAllFields(entityClass)) {
             // 处理@Transient
             if (field.isAnnotationPresent(Transient.class)) {
                 continue;
@@ -112,6 +114,8 @@ public class EntityDefinition {
                 // 预备主键字段 字段名为id
                 columnDefinition.setPrimaryKey(true);
                 columnDefinition.setUseGeneratedKey(true);
+                columnDefinition.setIdGeneratorClass(AutoIncrementIdGenerator.class);
+                columnDefinition.setAutoInjectProviderClass(IdGeneratorAutoInjectProvider.class);
                 preparatoryPrimaryKeyColumnDefinition = columnDefinition;
             }
 

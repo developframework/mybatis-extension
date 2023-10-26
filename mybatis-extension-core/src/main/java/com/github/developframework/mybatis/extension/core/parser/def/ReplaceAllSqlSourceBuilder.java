@@ -30,8 +30,8 @@ public class ReplaceAllSqlSourceBuilder implements SqlSourceBuilder {
 
     @Override
     public MapperMethodParseWrapper build(Configuration configuration, EntityDefinition entityDefinition, Method method) {
-        StringBuilder fields = new StringBuilder("(");
-        StringBuilder values = new StringBuilder("(");
+        StringBuilder fields = new StringBuilder(" (");
+        StringBuilder values = new StringBuilder(" (");
         List<ColumnDefinition> columnDefinitions = new ArrayList<>(entityDefinition.getColumnDefinitions().values());
 
         for (int i = 0; i < columnDefinitions.size(); i++) {

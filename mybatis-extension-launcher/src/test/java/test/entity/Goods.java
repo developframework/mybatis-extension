@@ -1,7 +1,6 @@
 package test.entity;
 
 import com.github.developframework.mybatis.extension.core.annotation.AutoInject;
-import com.github.developframework.mybatis.extension.core.annotation.CreateTime;
 import com.github.developframework.mybatis.extension.core.annotation.Id;
 import com.github.developframework.mybatis.extension.core.annotation.Table;
 import lombok.Getter;
@@ -10,8 +9,6 @@ import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
 import test.DomainIdAutoInjectProvider;
-
-import java.time.LocalDateTime;
 
 /**
  * @author qiushui on 2023-08-30.
@@ -22,7 +19,7 @@ import java.time.LocalDateTime;
 @Table("goods")
 @ToString
 @NoArgsConstructor
-public class Goods {
+public class Goods extends AuditPO {
 
     @Id
     private Integer id;
@@ -30,9 +27,6 @@ public class Goods {
     private String goodsName;
 
     private Integer quantity;
-
-    @CreateTime
-    private LocalDateTime createTime;
 
     @AutoInject(multipleTenant = true, value = DomainIdAutoInjectProvider.class)
     private Integer domainId;

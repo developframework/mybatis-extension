@@ -110,6 +110,14 @@ public interface BaseMapper<T, ID extends Serializable> {
     void alter(List<String> alterColumns);
 
     /**
+     * 拦截器自动拼装简单查询存在SQL
+     *
+     * @see com.github.developframework.mybatis.extension.core.interceptors.inner.SqlCriteriaAssemblerInnerInterceptor
+     */
+    @Select(AUTOMATIC_SQL)
+    boolean exists(SqlCriteriaAssembler assembler);
+
+    /**
      * 拦截器自动拼装简单查询SQL
      *
      * @see com.github.developframework.mybatis.extension.core.interceptors.inner.SqlCriteriaAssemblerInnerInterceptor

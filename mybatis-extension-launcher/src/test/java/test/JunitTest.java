@@ -1,7 +1,6 @@
 package test;
 
 import com.github.developframework.mybatis.extension.core.autoinject.AutoInjectProvider;
-import com.github.developframework.mybatis.extension.core.sql.Sort;
 import com.github.developframework.mybatis.extension.launcher.DataSourceMetadata;
 import com.github.developframework.mybatis.extension.launcher.ExtensionMybatisLauncher;
 import com.github.developframework.mybatis.extension.launcher.MybatisCustomize;
@@ -9,6 +8,7 @@ import org.apache.ibatis.session.Configuration;
 import org.apache.ibatis.session.SqlSession;
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.junit.Test;
+import test.entity.AuditPO;
 import test.entity.Goods;
 import test.mapper.GoodsMapper;
 
@@ -53,16 +53,15 @@ public class JunitTest {
 //            goods.setQuantity(4);
 //            mapper.insert(goods);
 
-            final List<Goods> list = mapper.select(
+            final boolean exists = mapper.exists(
                     (root, builder) -> {
                         return builder.or(
                                 builder.in(root.get(Goods.Fields.goodsName), "面包", "雪碧"),
-                                builder.between(root.function("DATE_FORMAT", Goods.Fields.createTime, "%Y-%m-%d"), LocalDate.of(2023, 9, 1), LocalDate.of(2023, 10, 1))
+                                builder.between(root.function("DATE_FORMAT", AuditPO.Fields.createTime, "%Y-%m-%d"), LocalDate.of(2023, 9, 1), LocalDate.of(2023, 10, 1))
                         );
-                    },
-                    Sort.by(Sort.asc("quantity"))
+                    }
             );
-            list.forEach(System.out::println);
+            System.out.println(exists);
         }
     }
 }

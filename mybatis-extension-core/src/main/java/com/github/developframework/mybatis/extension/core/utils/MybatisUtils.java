@@ -3,13 +3,11 @@ package com.github.developframework.mybatis.extension.core.utils;
 import com.github.developframework.mybatis.extension.core.BaseMapper;
 import com.github.developframework.mybatis.extension.core.parser.MapperMethodParseException;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
-import java.util.Collection;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * 工具类
@@ -104,5 +102,26 @@ public abstract class MybatisUtils {
             }
         }
         return collectionExpression;
+    }
+
+    public static List<Field> getAllFields(Class<?> entityClass) {
+        List<Field> fields = new ArrayList<>();
+        while (entityClass != Object.class) {
+            fields.addAll(Arrays.asList(entityClass.getDeclaredFields()));
+            entityClass = entityClass.getSuperclass();
+        }
+        return fields;
+    }
+
+    public static Field getField(Class<?> entityClass, String fieldName) throws NoSuchFieldException {
+        while (entityClass != Object.class) {
+            try {
+                return entityClass.getDeclaredField(fieldName);
+            } catch (NoSuchFieldException e) {
+                // 无操作
+            }
+            entityClass = entityClass.getSuperclass();
+        }
+        throw new NoSuchFieldException(fieldName);
     }
 }

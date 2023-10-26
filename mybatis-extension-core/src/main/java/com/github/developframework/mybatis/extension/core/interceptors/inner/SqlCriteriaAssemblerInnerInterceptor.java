@@ -12,6 +12,7 @@ import com.github.developframework.mybatis.extension.core.sql.builder.SqlCriteri
 import com.github.developframework.mybatis.extension.core.sql.builder.SqlCriteriaBuilder;
 import com.github.developframework.mybatis.extension.core.sql.builder.SqlRoot;
 import com.github.developframework.mybatis.extension.core.structs.EntityDefinition;
+import com.github.developframework.mybatis.extension.core.structs.MappedStatementMetadata;
 import com.github.developframework.mybatis.extension.core.utils.MybatisUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.ibatis.binding.MapperMethod;
@@ -69,7 +70,7 @@ public class SqlCriteriaAssemblerInnerInterceptor implements InnerInterceptor {
             final SqlSortPart sqlSortPart = MybatisUtils.find(parameter, SqlSortPart.class);
 
             // 改写MappedStatement
-            args[0] = buildMappedStatement(mappedStatement, entityDefinition, sqlCriteria, sqlSortPart);
+            args[0] = buildMappedStatement(context, mappedStatement, entityDefinition, sqlCriteria, sqlSortPart);
 
             // 填充参数
             final MapperMethod.ParamMap<Object> criteriaParamMap = builder.getCriteriaParamMap();
@@ -96,19 +97,37 @@ public class SqlCriteriaAssemblerInnerInterceptor implements InnerInterceptor {
     /**
      * 构建一个新的MappedStatement
      */
-    private MappedStatement buildMappedStatement(MappedStatement mappedStatement, EntityDefinition entityDefinition, SqlCriteria sqlCriteria, SqlSortPart sqlSortPart) {
-        final String basicSql = "SELECT * FROM " + entityDefinition.wrapTableName();
+    private MappedStatement buildMappedStatement(InterceptContext context, MappedStatement mappedStatement, EntityDefinition entityDefinition, SqlCriteria sqlCriteria, SqlSortPart sqlSortPart) {
+        final MappedStatementMetadata metadata = context.getMappedStatementMetadata();
+        final boolean exists = "exists".equals(metadata.getMapperMethod().getName());
+        final String basicSql;
+        if (exists) {
+            basicSql = "SELECT 1 FROM " + entityDefinition.wrapTableName();
+        } else {
+            basicSql = "SELECT * FROM " + entityDefinition.wrapTableName();
+        }
+
         final SqlNode sqlNode = sqlCriteria == null ? null : sqlCriteria.toSqlNode().apply(Interval.AND);
         final String orderBySql = sqlSortPart == null ? "" : sqlSortPart.toSql(entityDefinition);
         final Configuration configuration = mappedStatement.getConfiguration();
         final SqlSource sqlSource;
         if (sqlNode == null) {
-            sqlSource = new StaticSqlSource(configuration, basicSql + orderBySql);
+            String finalSql = basicSql + orderBySql;
+            if (exists) {
+                finalSql = "SELECT IFNULL((" + finalSql + "), 0) `exists`";
+            }
+            sqlSource = new StaticSqlSource(configuration, finalSql);
         } else {
-            List<SqlNode> sqlNodes = new ArrayList<>(3);
+            List<SqlNode> sqlNodes = new ArrayList<>(5);
+            if (exists) {
+                sqlNodes.add(new StaticTextSqlNode("SELECT IFNULL(("));
+            }
             sqlNodes.add(new StaticTextSqlNode(basicSql));
             sqlNodes.add(new WhereSqlNode(configuration, sqlNode));
             sqlNodes.add(new StaticTextSqlNode(orderBySql));
+            if (exists) {
+                sqlNodes.add(new StaticTextSqlNode("), 0) `exists`"));
+            }
             sqlSource = new DynamicSqlSource(configuration, new MixedSqlNode(sqlNodes));
         }
         return new MappedStatement.Builder(configuration, mappedStatement.getId(), sqlSource, mappedStatement.getSqlCommandType())

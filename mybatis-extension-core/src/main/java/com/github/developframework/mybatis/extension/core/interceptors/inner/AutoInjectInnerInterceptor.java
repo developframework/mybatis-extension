@@ -137,7 +137,7 @@ public class AutoInjectInnerInterceptor implements InnerInterceptor {
             if (commandType == sqlCommandType) {
                 final Class<?> entityClass = entity.getClass();
                 try {
-                    final Field field = entityClass.getDeclaredField(columnDefinition.getProperty());
+                    final Field field = MybatisUtils.getField(entityClass, columnDefinition.getProperty());
                     field.setAccessible(true);
                     Object value = field.get(entity);
                     // 原来没值
