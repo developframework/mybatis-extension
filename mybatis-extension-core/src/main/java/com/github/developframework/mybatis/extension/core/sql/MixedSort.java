@@ -18,6 +18,6 @@ public class MixedSort implements SqlSortPart {
     public String toSql(EntityDefinition entityDefinition) {
         return Arrays.stream(sortArray)
                 .map(s -> s.toSql(entityDefinition))
-                .collect(Collectors.joining(", ", " ORDER BY ", ""));
+                .collect(Collectors.joining(", "));
     }
 }

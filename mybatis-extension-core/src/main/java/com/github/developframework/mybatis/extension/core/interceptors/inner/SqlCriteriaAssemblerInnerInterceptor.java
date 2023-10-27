@@ -108,7 +108,7 @@ public class SqlCriteriaAssemblerInnerInterceptor implements InnerInterceptor {
         }
 
         final SqlNode sqlNode = sqlCriteria == null ? null : sqlCriteria.toSqlNode().apply(Interval.AND);
-        final String orderBySql = sqlSortPart == null ? "" : sqlSortPart.toSql(entityDefinition);
+        final String orderBySql = sqlSortPart == null ? "" : (" ORDER BY " + sqlSortPart.toSql(entityDefinition));
         final Configuration configuration = mappedStatement.getConfiguration();
         final SqlSource sqlSource;
         if (sqlNode == null) {
