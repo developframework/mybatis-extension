@@ -23,6 +23,8 @@ public class MybatisExtensionCore {
         for (SqlSessionFactory sqlSessionFactory : sqlSessionFactories) {
 
             Configuration configuration = sqlSessionFactory.getConfiguration();
+
+            // 载入BaseMapper下已成为MappedStatement的方法
             for (Object obj : configuration.getMappedStatements()) {
 
                 /**
@@ -43,6 +45,7 @@ public class MybatisExtensionCore {
                 }
             }
 
+            // 载入BaseMapper下未生成MappedStatement的方法
             for (Class<?> mapperClass : configuration.getMapperRegistry().getMappers()) {
                 if (BaseMapper.class.isAssignableFrom(mapperClass)) {
                     Class<?> entityClass = MybatisUtils.getEntityClass(mapperClass);
@@ -55,8 +58,6 @@ public class MybatisExtensionCore {
                             mappedStatementMetadataRegistry
                     );
                     mapperExtensionBuilder.parse();
-                } else {
-                    // TODO 非BaseMapper的处理方式
                 }
             }
         }

@@ -1,7 +1,6 @@
 package com.github.developframework.mybatis.extension.core.structs;
 
 import com.github.developframework.mybatis.extension.core.BaseMapper;
-import com.github.developframework.mybatis.extension.core.MybatisExtensionException;
 import com.github.developframework.mybatis.extension.core.utils.MybatisUtils;
 import lombok.*;
 import org.apache.ibatis.mapping.MappedStatement;
@@ -38,7 +37,7 @@ public class MappedStatementMetadata {
         if (BaseMapper.class.isAssignableFrom(mapperClass)) {
             entityClass = MybatisUtils.getEntityClass(mapperClass);
         } else {
-            throw new MybatisExtensionException(mapperClass.getName() + "必须继承BaseMapper接口");
+            entityClass = null;
         }
         return new MappedStatementMetadata(mapperClass, entityClass, mapperMethod, ms);
     }
