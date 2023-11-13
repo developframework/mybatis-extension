@@ -1,5 +1,6 @@
 package com.github.developframework.mybatis.extension.core.typehandlers;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.ibatis.type.BaseTypeHandler;
 import org.apache.ibatis.type.JdbcType;
 import org.apache.ibatis.type.MappedJdbcTypes;
@@ -17,33 +18,27 @@ import java.sql.SQLException;
 @MappedJdbcTypes(JdbcType.VARCHAR)
 public class StringArrayTypeHandler extends BaseTypeHandler<String[]> {
 
+
     @Override
     public void setNonNullParameter(PreparedStatement ps, int i, String[] parameter, JdbcType jdbcType) throws SQLException {
-        ps.setString(i, String.join(",", parameter));
+        ps.setString(i, StringUtils.join(parameter, ","));
     }
 
     @Override
     public String[] getNullableResult(ResultSet rs, String columnName) throws SQLException {
-        return handleValue(rs.getString(columnName));
+        final String str = rs.getString(columnName);
+        return str == null ? null : str.split(",");
     }
 
     @Override
     public String[] getNullableResult(ResultSet rs, int columnIndex) throws SQLException {
-        return handleValue(rs.getString(columnIndex));
+        final String str = rs.getString(columnIndex);
+        return str == null ? null : str.split(",");
     }
 
     @Override
     public String[] getNullableResult(CallableStatement cs, int columnIndex) throws SQLException {
-        return handleValue(cs.getString(columnIndex));
-    }
-
-    private String[] handleValue(String value) {
-        if (value == null) {
-            return null;
-        } else if (value.isEmpty()) {
-            return new String[0];
-        } else {
-            return value.split(",");
-        }
+        final String str = cs.getString(columnIndex);
+        return str == null ? null : str.split(",");
     }
 }

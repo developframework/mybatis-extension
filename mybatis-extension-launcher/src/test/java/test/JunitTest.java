@@ -8,11 +8,9 @@ import org.apache.ibatis.session.Configuration;
 import org.apache.ibatis.session.SqlSession;
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.junit.Test;
-import test.entity.AuditPO;
 import test.entity.Goods;
 import test.mapper.GoodsMapper;
 
-import java.time.LocalDate;
 import java.util.List;
 
 /**
@@ -49,19 +47,21 @@ public class JunitTest {
         try (SqlSession sqlSession = sqlSessionFactory.openSession(true)) {
             final GoodsMapper mapper = sqlSession.getMapper(GoodsMapper.class);
 //            Goods goods = new Goods();
-//            goods.setGoodsName("雪碧");
+//            goods.setGoodsName("雪碧1");
 //            goods.setQuantity(4);
 //            mapper.insert(goods);
+//            System.out.println(goods.getId());
 
-            final boolean exists = mapper.exists(
+            final List<Goods> list = mapper.select(
                     (root, builder) -> {
-                        return builder.or(
-                                builder.in(root.get(Goods.Fields.goodsName), "面包", "雪碧"),
-                                builder.between(root.function("DATE_FORMAT", AuditPO.Fields.createTime, "%Y-%m-%d"), LocalDate.of(2023, 9, 1), LocalDate.of(2023, 10, 1))
+                        return builder.and(
+                                builder.eq(root.get(Goods.Fields.goodsName), "雪碧1"),
+                                builder.gt(root.get(Goods.Fields.quantity), 1)
                         );
-                    }
+                    },
+                    null
             );
-            System.out.println(exists);
+            System.out.println(list);
         }
     }
 }

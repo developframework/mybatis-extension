@@ -3,6 +3,7 @@ package com.github.developframework.mybatis.extension.core;
 import com.github.developframework.mybatis.extension.core.parser.MapperMethodParser;
 import com.github.developframework.mybatis.extension.core.parser.def.BaseMapperDefaultParser;
 import com.github.developframework.mybatis.extension.core.parser.naming.MapperMethodNamingParser;
+import com.github.developframework.mybatis.extension.core.structs.ColumnDefinition;
 import com.github.developframework.mybatis.extension.core.structs.EntityDefinition;
 import com.github.developframework.mybatis.extension.core.structs.MapperMethodParseWrapper;
 import lombok.Getter;
@@ -100,6 +101,9 @@ public class MapperExtensionBuilder {
                 keyGenerator = handleSelectKeyAnnotation(selectKey, mappedStatementId, getParameterType(method), languageDriver);
                 keyProperty = selectKey.keyProperty();
             } else if (options == null) {
+                // 设定自增主键回填
+                final ColumnDefinition primaryKeyColumnDefinition = entityDefinition.getPrimaryKeyColumnDefinitions()[0];
+                keyProperty = primaryKeyColumnDefinition.getProperty();
                 keyGenerator = configuration.isUseGeneratedKeys() ? Jdbc3KeyGenerator.INSTANCE : NoKeyGenerator.INSTANCE;
             } else {
                 keyGenerator = options.useGeneratedKeys() ? Jdbc3KeyGenerator.INSTANCE : NoKeyGenerator.INSTANCE;

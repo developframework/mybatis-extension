@@ -118,6 +118,16 @@ public class SqlCriteriaBuilder {
         return commonWithIn(fieldPart, array, Operate.NOT_IN);
     }
 
+    public SqlCriteria terminate() {
+        return new FieldSqlCriteria(configuration) {
+
+            @Override
+            public Function<Interval, SqlNode> toSqlNode() {
+                return interval -> new StaticTextSqlNode(interval.getText() + "0 = 1");
+            }
+        };
+    }
+
     public SqlCriteria between(SqlFieldPart fieldPart, Object value1, Object value2) {
         return new FieldSqlCriteria(configuration) {
             @Override

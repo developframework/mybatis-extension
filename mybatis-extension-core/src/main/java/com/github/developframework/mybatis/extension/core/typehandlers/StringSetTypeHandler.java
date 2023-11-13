@@ -1,5 +1,6 @@
 package com.github.developframework.mybatis.extension.core.typehandlers;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.ibatis.type.BaseTypeHandler;
 import org.apache.ibatis.type.JdbcType;
 import org.apache.ibatis.type.MappedJdbcTypes;
@@ -21,31 +22,24 @@ public class StringSetTypeHandler extends BaseTypeHandler<Set<String>> {
 
     @Override
     public void setNonNullParameter(PreparedStatement ps, int i, Set<String> parameter, JdbcType jdbcType) throws SQLException {
-        ps.setString(i, String.join(",", parameter));
+        ps.setString(i, StringUtils.join(parameter, ","));
     }
 
     @Override
     public Set<String> getNullableResult(ResultSet rs, String columnName) throws SQLException {
-        return handleValue(rs.getString(columnName));
+        final String str = rs.getString(columnName);
+        return str == null ? null : new HashSet<>(Set.of(str.split(",")));
     }
 
     @Override
     public Set<String> getNullableResult(ResultSet rs, int columnIndex) throws SQLException {
-        return handleValue(rs.getString(columnIndex));
+        final String str = rs.getString(columnIndex);
+        return str == null ? null : new HashSet<>(Set.of(str.split(",")));
     }
 
     @Override
     public Set<String> getNullableResult(CallableStatement cs, int columnIndex) throws SQLException {
-        return handleValue(cs.getString(columnIndex));
-    }
-
-    private Set<String> handleValue(String value) {
-        if (value == null) {
-            return null;
-        } else if (value.isEmpty()) {
-            return new HashSet<>();
-        } else {
-            return new HashSet<>(Set.of(value.split(",")));
-        }
+        final String str = cs.getString(columnIndex);
+        return str == null ? null : new HashSet<>(Set.of(str.split(",")));
     }
 }

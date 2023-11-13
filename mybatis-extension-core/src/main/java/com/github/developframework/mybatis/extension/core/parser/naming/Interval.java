@@ -14,7 +14,8 @@ import lombok.RequiredArgsConstructor;
 public enum Interval {
 
     AND(" AND "),
-    OR(" OR ");
+    OR(" OR "),
+    EMPTY("");
 
     private final String text;
 }

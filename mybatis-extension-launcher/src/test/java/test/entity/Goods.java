@@ -1,6 +1,5 @@
 package test.entity;
 
-import com.github.developframework.mybatis.extension.core.annotation.AutoInject;
 import com.github.developframework.mybatis.extension.core.annotation.Id;
 import com.github.developframework.mybatis.extension.core.annotation.Table;
 import lombok.Getter;
@@ -8,7 +7,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
-import test.DomainIdAutoInjectProvider;
 
 /**
  * @author qiushui on 2023-08-30.
@@ -28,7 +26,7 @@ public class Goods extends AuditPO {
 
     private Integer quantity;
 
-    @AutoInject(multipleTenant = true, value = DomainIdAutoInjectProvider.class)
+    //    @AutoInject(multipleTenant = true, value = DomainIdAutoInjectProvider.class)
     private Integer domainId;
 
     public Goods(String goodsName, Integer quantity) {

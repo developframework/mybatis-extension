@@ -42,13 +42,16 @@ public class MixedSqlCriteria extends SqlCriteria {
                     ")",
                     null
             );
-            return new MixedSqlNode(
-                    List.of(
-                            new StaticTextSqlNode(_interval.getText()),
-                            trimSqlNode
-                    )
-            );
+            if (_interval == Interval.EMPTY) {
+                return trimSqlNode;
+            } else {
+                return new MixedSqlNode(
+                        List.of(
+                                new StaticTextSqlNode(_interval.getText()),
+                                trimSqlNode
+                        )
+                );
+            }
         };
-
     }
 }
