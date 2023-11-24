@@ -19,8 +19,6 @@ import org.apache.ibatis.binding.MapperMethod;
 import org.apache.ibatis.builder.StaticSqlSource;
 import org.apache.ibatis.mapping.MappedStatement;
 import org.apache.ibatis.mapping.SqlSource;
-import org.apache.ibatis.reflection.SystemMetaObject;
-import org.apache.ibatis.scripting.defaults.RawSqlSource;
 import org.apache.ibatis.scripting.xmltags.*;
 import org.apache.ibatis.session.Configuration;
 
@@ -39,14 +37,19 @@ public class SqlCriteriaAssemblerInnerInterceptor implements InnerInterceptor {
     public Object executorQuery(InnerInvocation innerInvocation, InterceptContext context) throws Throwable {
         final Object[] args = innerInvocation.getInvocation().getArgs();
         final Object parameter = args[1];
-        final SqlCriteriaAssembler sqlCriteriaAssembler = MybatisUtils.find(parameter, SqlCriteriaAssembler.class);
-        if (sqlCriteriaAssembler != null) {
+        final MappedStatementMetadata metadata = context.getMappedStatementMetadata();
+        if (metadata.isHasSqlCriteriaAssembler()) {
+            final SqlCriteriaAssembler sqlCriteriaAssembler = MybatisUtils.find(parameter, SqlCriteriaAssembler.class);
+
             MappedStatement mappedStatement = (MappedStatement) args[0];
             final Configuration configuration = mappedStatement.getConfiguration();
             final EntityDefinition entityDefinition = context.getEntityDefinition();
             final SqlRoot root = new SqlRoot(entityDefinition);
             final SqlCriteriaBuilder builder = new SqlCriteriaBuilder(configuration, entityDefinition);
-            SqlCriteria sqlCriteria = sqlCriteriaAssembler.assemble(root, builder);
+            SqlCriteria sqlCriteria = null;
+            if (sqlCriteriaAssembler != null) {
+                sqlCriteria = sqlCriteriaAssembler.assemble(root, builder);
+            }
 
             // 多租户
             if (entityDefinition.hasMultipleTenant()) {
@@ -70,7 +73,7 @@ public class SqlCriteriaAssemblerInnerInterceptor implements InnerInterceptor {
             final SqlSortPart sqlSortPart = MybatisUtils.find(parameter, SqlSortPart.class);
 
             // 改写MappedStatement
-            args[0] = buildMappedStatement(context, mappedStatement, entityDefinition, sqlCriteria, sqlSortPart);
+            args[0] = buildMappedStatement(metadata, mappedStatement, entityDefinition, sqlCriteria, sqlSortPart);
 
             // 填充参数
             final MapperMethod.ParamMap<Object> criteriaParamMap = builder.getCriteriaParamMap();
@@ -83,22 +86,10 @@ public class SqlCriteriaAssemblerInnerInterceptor implements InnerInterceptor {
         return innerInvocation.proceed();
     }
 
-    private boolean checkSqlEmpty(MappedStatement ms) {
-        SqlSource sqlSource = ms.getSqlSource();
-        if (sqlSource instanceof RawSqlSource) {
-            sqlSource = (SqlSource) SystemMetaObject.forObject(sqlSource).getValue("sqlSource");
-            if (sqlSource instanceof StaticSqlSource) {
-                return ((String) SystemMetaObject.forObject(sqlSource).getValue("sql")).isEmpty();
-            }
-        }
-        return false;
-    }
-
     /**
      * 构建一个新的MappedStatement
      */
-    private MappedStatement buildMappedStatement(InterceptContext context, MappedStatement mappedStatement, EntityDefinition entityDefinition, SqlCriteria sqlCriteria, SqlSortPart sqlSortPart) {
-        final MappedStatementMetadata metadata = context.getMappedStatementMetadata();
+    private MappedStatement buildMappedStatement(MappedStatementMetadata metadata, MappedStatement mappedStatement, EntityDefinition entityDefinition, SqlCriteria sqlCriteria, SqlSortPart sqlSortPart) {
         final boolean exists = "exists".equals(metadata.getMapperMethod().getName());
         final String basicSql;
         if (exists) {

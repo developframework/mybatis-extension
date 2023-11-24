@@ -1,6 +1,7 @@
 package com.github.developframework.mybatis.extension.core.structs;
 
 import com.github.developframework.mybatis.extension.core.BaseMapper;
+import com.github.developframework.mybatis.extension.core.sql.builder.SqlCriteriaAssembler;
 import com.github.developframework.mybatis.extension.core.utils.MybatisUtils;
 import lombok.*;
 import org.apache.ibatis.mapping.MappedStatement;
@@ -25,6 +26,10 @@ public class MappedStatementMetadata {
 
     private final MappedStatement originalMappedStatement;
 
+    private final boolean hasSqlCriteriaAssembler;
+
+    private final boolean hasPager;
+
     @SneakyThrows({ClassNotFoundException.class, NoSuchMethodException.class})
     public static MappedStatementMetadata parse(MappedStatement ms) {
         final String msId = ms.getId();
@@ -33,13 +38,24 @@ public class MappedStatementMetadata {
         final String interfaceName = msId.substring(0, pos);
         final Class<?> mapperClass = Class.forName(interfaceName);
         final Method mapperMethod = getMethodByName(mapperClass, methodName);
+        final Class<?>[] parameterTypes = mapperMethod.getParameterTypes();
+
+        boolean hasSqlCriteriaAssembler = false, hasPager = false;
+        for (Class<?> parameterType : parameterTypes) {
+            if (SqlCriteriaAssembler.class.isAssignableFrom(parameterType)) {
+                hasSqlCriteriaAssembler = true;
+            } else if (parameterType == Pager.class) {
+                hasPager = true;
+            }
+        }
+
         final Class<?> entityClass;
         if (BaseMapper.class.isAssignableFrom(mapperClass)) {
             entityClass = MybatisUtils.getEntityClass(mapperClass);
         } else {
             entityClass = null;
         }
-        return new MappedStatementMetadata(mapperClass, entityClass, mapperMethod, ms);
+        return new MappedStatementMetadata(mapperClass, entityClass, mapperMethod, ms, hasSqlCriteriaAssembler, hasPager);
     }
 
     private static Method getMethodByName(Class<?> mapperClass, String methodName) throws NoSuchMethodException {

@@ -36,10 +36,10 @@ public class PagingInnerInterceptor implements InnerInterceptor {
      */
     @Override
     public Object executorQuery(InnerInvocation innerInvocation, InterceptContext context) throws Throwable {
-        final Object[] args = innerInvocation.getInvocation().getArgs();
-        final Object parameter = args[1];
-        final Pager pager = MybatisUtils.find(parameter, Pager.class);
-        if (pager != null) {
+        if (context.getMappedStatementMetadata().isHasPager()) {
+            final Object[] args = innerInvocation.getInvocation().getArgs();
+            final Object parameter = args[1];
+            final Pager pager = MybatisUtils.find(parameter, Pager.class);
             final Method mapperMethod = context.getMappedStatementMetadata().getMapperMethod();
             if (mapperMethod.getReturnType() == Page.class) {
                 pager.setTotal(
@@ -55,9 +55,9 @@ public class PagingInnerInterceptor implements InnerInterceptor {
      */
     @Override
     public Object statementHandlerPrepare(InnerInvocation innerInvocation, InterceptContext context) throws Throwable {
-        final StatementHandler statementHandler = (StatementHandler) innerInvocation.getInvocation().getTarget();
-        final Pager pager = MybatisUtils.find(statementHandler.getParameterHandler().getParameterObject(), Pager.class);
-        if (pager != null) {
+        if (context.getMappedStatementMetadata().isHasPager()) {
+            final StatementHandler statementHandler = (StatementHandler) innerInvocation.getInvocation().getTarget();
+            final Pager pager = MybatisUtils.find(statementHandler.getParameterHandler().getParameterObject(), Pager.class);
             // 魔改SQL 拼上LIMIT
             final BoundSql boundSql = statementHandler.getBoundSql();
             final String newSql = boundSql.getSql() + " LIMIT ?, ?";
