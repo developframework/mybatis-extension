@@ -55,9 +55,9 @@ public class PagingInnerInterceptor implements InnerInterceptor {
      */
     @Override
     public Object statementHandlerPrepare(InnerInvocation innerInvocation, InterceptContext context) throws Throwable {
-        if (context.getMappedStatementMetadata().isHasPager()) {
-            final StatementHandler statementHandler = (StatementHandler) innerInvocation.getInvocation().getTarget();
-            final Pager pager = MybatisUtils.find(statementHandler.getParameterHandler().getParameterObject(), Pager.class);
+        final StatementHandler statementHandler = (StatementHandler) innerInvocation.getInvocation().getTarget();
+        final Pager pager = MybatisUtils.find(statementHandler.getParameterHandler().getParameterObject(), Pager.class);
+        if (pager != null) {
             // 魔改SQL 拼上LIMIT
             final BoundSql boundSql = statementHandler.getBoundSql();
             final String newSql = boundSql.getSql() + " LIMIT ?, ?";
