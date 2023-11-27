@@ -2,6 +2,7 @@ package com.github.developframework.mybatis.extension.core.annotation;
 
 import org.apache.ibatis.type.JdbcType;
 import org.apache.ibatis.type.TypeHandler;
+import org.apache.ibatis.type.UnknownTypeHandler;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -53,12 +54,12 @@ public @interface Column {
     /**
      * mybatis决定typeHandler的javaType
      */
-    String javaType() default "";
+    Class<?> javaType() default void.class;
 
     /**
      * mybatis决定typeHandler的jdbcType
      */
-    JdbcType jdbcType() default JdbcType.OTHER;
+    JdbcType jdbcType() default JdbcType.UNDEFINED;
 
     /**
      * 字段注释
@@ -68,5 +69,5 @@ public @interface Column {
     /**
      * 指定typeHandler
      */
-    Class<? extends TypeHandler> typeHandler() default TypeHandler.class;
+    Class<? extends TypeHandler<?>> typeHandler() default UnknownTypeHandler.class;
 }

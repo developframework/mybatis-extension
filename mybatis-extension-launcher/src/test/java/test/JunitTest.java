@@ -10,6 +10,7 @@ import org.apache.ibatis.session.SqlSessionFactory;
 import org.junit.Test;
 import test.entity.Goods;
 import test.mapper.GoodsMapper;
+import test.typehandler.GoodsSpecArrayTypeHandler;
 
 import java.util.List;
 
@@ -30,6 +31,7 @@ public class JunitTest {
             @Override
             public void handleConfiguration(Configuration configuration) {
                 configuration.getMapperRegistry().addMapper(GoodsMapper.class);
+                configuration.getTypeHandlerRegistry().register(GoodsSpecArrayTypeHandler.class);
             }
 
             @Override

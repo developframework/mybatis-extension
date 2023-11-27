@@ -1,4 +1,11 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="test.mapper.GoodsMapper">
 
+    <!--    <resultMap id="selectByGoodsNameMap" type="test.entity.Goods">-->
+    <!--        <result property="goodSpecs" column="good_specs" typeHandler="test.typehandler.GoodsSpecArrayTypeHandler"/>-->
+    <!--    </resultMap>-->
+
+    <!--    <select id="selectByGoodsName" resultMap="selectByGoodsNameMap">-->
+    <!--        SELECT * FROM goods WHERE goods_name = #{goodsName}-->
+    <!--    </select>-->
 </mapper>

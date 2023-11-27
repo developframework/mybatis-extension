@@ -4,6 +4,7 @@ import com.github.developframework.mybatis.extension.core.parser.MapperMethodPar
 import com.github.developframework.mybatis.extension.core.parser.def.BaseMapperDefaultParser;
 import com.github.developframework.mybatis.extension.core.parser.naming.MapperMethodNamingParser;
 import com.github.developframework.mybatis.extension.core.structs.ColumnDefinition;
+import com.github.developframework.mybatis.extension.core.structs.ColumnMybatisPlaceholder;
 import com.github.developframework.mybatis.extension.core.structs.EntityDefinition;
 import com.github.developframework.mybatis.extension.core.structs.MapperMethodParseWrapper;
 import lombok.Getter;
@@ -79,6 +80,7 @@ public class MapperExtensionBuilder {
         final Class<?> parameterTypeClass = getParameterType(method);
         final LanguageDriver languageDriver = getLanguageDriver(method);
 
+        // 自定义解析构建
         MapperMethodParseWrapper wrapper = buildWrapper(method);
         if (wrapper == null) {
             return null;
@@ -86,7 +88,7 @@ public class MapperExtensionBuilder {
         final SqlSource sqlSource = wrapper.sqlSource();
         final SqlCommandType sqlCommandType = wrapper.sqlCommandType();
 
-        if (sqlCommandType == SqlCommandType.SELECT) {
+        if (sqlCommandType == SqlCommandType.SELECT && method.getAnnotation(ResultMap.class) == null) {
             parseResultMap(method);
         }
 
@@ -188,6 +190,8 @@ public class MapperExtensionBuilder {
         applyConstructorArgs(args, returnType, resultMappings);
         applyResults(results, returnType, resultMappings);
         Discriminator disc = applyDiscriminator(resultMapId, returnType, discriminator);
+        // 来自@Column的参数
+        applyColumnDefinitions(entityDefinition.getColumnDefinitions().values(), returnType, resultMappings);
         // TODO add AutoMappingBehaviour
         assistant.addResultMap(resultMapId, returnType, null, disc, resultMappings, null);
         createDiscriminatorResultMaps(resultMapId, returnType, discriminator);
@@ -247,6 +251,36 @@ public class MapperExtensionBuilder {
                     null,
                     null,
                     isLazy(result));
+            resultMappings.add(resultMapping);
+        }
+    }
+
+    /**
+     * 来自@Column的参数
+     */
+    private void applyColumnDefinitions(Collection<ColumnDefinition> columnDefinitions, Class<?> resultType, List<ResultMapping> resultMappings) {
+        for (ColumnDefinition columnDefinition : columnDefinitions) {
+            List<ResultFlag> flags = new ArrayList<>();
+            if (columnDefinition.isPrimaryKey()) {
+                flags.add(ResultFlag.ID);
+            }
+            final ColumnMybatisPlaceholder columnMybatisPlaceholder = columnDefinition.getColumnMybatisPlaceholder();
+            ResultMapping resultMapping = assistant.buildResultMapping(
+                    resultType,
+                    columnDefinition.getProperty(),
+                    columnDefinition.getColumn(),
+                    columnMybatisPlaceholder.javaType == void.class ? null : columnMybatisPlaceholder.javaType,
+                    columnMybatisPlaceholder.jdbcType == JdbcType.UNDEFINED ? null : columnMybatisPlaceholder.jdbcType,
+                    null,
+                    null,
+                    null,
+                    null,
+                    columnMybatisPlaceholder.typeHandlerClass,
+                    flags,
+                    null,
+                    null,
+                    false
+            );
             resultMappings.add(resultMapping);
         }
     }
