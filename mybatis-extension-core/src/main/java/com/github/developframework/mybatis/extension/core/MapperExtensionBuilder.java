@@ -191,7 +191,7 @@ public class MapperExtensionBuilder {
         applyResults(results, returnType, resultMappings);
         Discriminator disc = applyDiscriminator(resultMapId, returnType, discriminator);
         // 来自@Column的参数
-        applyColumnDefinitions(entityDefinition.getColumnDefinitions().values(), returnType, resultMappings);
+//        applyColumnDefinitions(entityDefinition.getColumnDefinitions().values(), returnType, resultMappings);
         // TODO add AutoMappingBehaviour
         assistant.addResultMap(resultMapId, returnType, null, disc, resultMappings, null);
         createDiscriminatorResultMaps(resultMapId, returnType, discriminator);
