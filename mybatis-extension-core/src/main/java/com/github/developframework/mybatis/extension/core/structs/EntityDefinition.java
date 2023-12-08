@@ -124,8 +124,10 @@ public class EntityDefinition {
             if (id != null) {
                 columnDefinition.setPrimaryKey(true);
                 columnDefinition.setUseGeneratedKey(id.useGeneratedKey());
-                if (id.idGenerator() != NoIdGenerator.class) {
-                    columnDefinition.setIdGeneratorClass(id.idGenerator());
+                columnDefinition.setIdGeneratorClass(id.idGenerator());
+                if (id.idGenerator() == NoIdGenerator.class) {
+                    columnDefinition.setAutoInjectProviderClass(null);
+                } else {
                     columnDefinition.setAutoInjectProviderClass(IdGeneratorAutoInjectProvider.class);
                 }
                 primaryKeyColumnDefinitionList.add(columnDefinition);
