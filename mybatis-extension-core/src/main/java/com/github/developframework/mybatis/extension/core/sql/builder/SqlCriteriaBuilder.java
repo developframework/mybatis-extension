@@ -247,12 +247,13 @@ public class SqlCriteriaBuilder {
                             ")",
                             ","
                     );
-                    return new MixedSqlNode(
+                    MixedSqlNode mixedSqlNode = new MixedSqlNode(
                             List.of(
                                     new StaticTextSqlNode(interval.getText() + operate.getFormat().formatted(fieldPart.toSql())),
                                     forEachSqlNode
                             )
                     );
+                    return buildIfSqlNode(paramName, fieldPart, mixedSqlNode);
                 };
             }
         };
