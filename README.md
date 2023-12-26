@@ -2,6 +2,82 @@
 
 > 对mybatis的功能扩展包，丝滑接入不影响原有mybatis功能
 
+### 快速使用
+
+#### 基于spring-boot
+
+```xml
+<dependency>
+    <groupId>com.github.developframework</groupId>
+    <artifactId>mybatis-extension-spring-boot-starter</artifactId>
+</dependency>
+```
+
+```yml
+mybatis:
+  mapperLocations: 'classpath:mybatis/mapper/*.xml'
+  typeAliasesPackage: '自己的实体包路径'
+  extension:
+    enableDDL: true # 开启自动创建表
+```
+
+这里不需要使用`mybatis.configLocation`参数，因为jar包里已实现了`ConfigurationCustomizer`覆盖默认配置
+
+SQL日志打印前缀为mybatis.extension
+
+```xml
+<logger name="mybatis.extension" additivity="false" level="DEBUG">
+    <appender-ref ref="console"/>
+</logger>
+```
+
+#### 脚本
+
+```xml
+<dependency>
+    <groupId>com.github.developframework</groupId>
+    <artifactId>mybatis-extension-launcher</artifactId>
+</dependency>
+```
+
+```java
+// 数据源信息
+DataSourceMetadata metadata = new DataSourceMetadata()
+                .setJdbcUrl("jdbc:mysql://")
+                .setUsername("")
+                .setPassword("");
+
+// 构建SqlSessionFactory
+SqlSessionFactory sqlSessionFactory = ExtensionMybatisLauncher.open(metadata, new MybatisCustomize() {
+
+    @Override
+    public void handleConfiguration(Configuration configuration) {
+        // 注册Mapper接口
+        configuration.getMapperRegistry().addMapper(GoodsMapper.class);
+        // 可以注册转换器
+        configuration.getTypeHandlerRegistry().register(GoodsSpecArrayTypeHandler.class);
+    }
+
+    @Override
+    public boolean enableDDL() {
+        // 开启自动建表
+        return true;
+    }
+
+    @Override
+    public List<? extends AutoInjectProvider> customAutoInjectProviders() {
+        return List.of(
+            // 配置自动注入
+        );
+    }
+});
+try (SqlSession sqlSession = sqlSessionFactory.openSession(true)) {
+    // 获取Mapper开始脚本处理
+    final GoodsMapper mapper = sqlSession.getMapper(GoodsMapper.class);
+    
+}
+```
+
 ### BaseMapper 通用Mapper接口
 
 提供通用方法
