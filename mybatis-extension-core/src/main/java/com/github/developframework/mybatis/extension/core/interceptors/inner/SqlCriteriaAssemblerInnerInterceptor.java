@@ -105,7 +105,7 @@ public class SqlCriteriaAssemblerInnerInterceptor implements InnerInterceptor {
         if (sqlNode == null) {
             String finalSql = basicSql + orderBySql;
             if (exists) {
-                finalSql = "SELECT IFNULL((" + finalSql + "), 0) `exists`";
+                finalSql = "SELECT IFNULL((" + finalSql + "LIMIT 1), 0) `exists`";
             }
             sqlSource = new StaticSqlSource(configuration, finalSql);
         } else {
@@ -117,7 +117,7 @@ public class SqlCriteriaAssemblerInnerInterceptor implements InnerInterceptor {
             sqlNodes.add(new WhereSqlNode(configuration, sqlNode));
             sqlNodes.add(new StaticTextSqlNode(orderBySql));
             if (exists) {
-                sqlNodes.add(new StaticTextSqlNode("), 0) `exists`"));
+                sqlNodes.add(new StaticTextSqlNode("LIMIT 1), 0) `exists`"));
             }
             sqlSource = new DynamicSqlSource(configuration, new MixedSqlNode(sqlNodes));
         }

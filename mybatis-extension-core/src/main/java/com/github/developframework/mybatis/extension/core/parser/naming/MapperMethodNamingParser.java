@@ -92,7 +92,7 @@ public class MapperMethodNamingParser implements MapperMethodParser {
                 // 查询存在优化处理
                 if (methodPrefix == MethodPrefix.EXISTS_BY || methodPrefix == MethodPrefix.HAS_BY) {
                     sqlNodes.add(0, new StaticTextSqlNode("SELECT IFNULL(("));
-                    sqlNodes.add(new StaticTextSqlNode("), 0) `exists`"));
+                    sqlNodes.add(new StaticTextSqlNode("LIMIT 1), 0) `exists`"));
                 }
                 yield new DynamicSqlSource(configuration, new MixedSqlNode(sqlNodes));
             }

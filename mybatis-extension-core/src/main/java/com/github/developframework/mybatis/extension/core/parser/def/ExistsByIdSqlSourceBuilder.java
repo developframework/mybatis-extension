@@ -32,12 +32,12 @@ public class ExistsByIdSqlSourceBuilder extends AbstractSqlSourceBuilder {
                             new StaticTextSqlNode("SELECT IFNULL(("),
                             new StaticTextSqlNode(sql),
                             multipleTenantSqlNodes(entityDefinition),
-                            new StaticTextSqlNode("), 0) `exists`")
+                            new StaticTextSqlNode("LIMIT 1), 0) `exists`")
                     )
             );
             sqlSource = new DynamicSqlSource(configuration, mixedSqlNode);
         } else {
-            sql = String.format("SELECT IFNULL((%s), 0) `exists`", sql);
+            sql = String.format("SELECT IFNULL((%s LIMIT 1), 0) `exists`", sql);
             sqlSource = new RawSqlSource(configuration, sql, entityDefinition.getEntityClass());
         }
         return new MapperMethodParseWrapper(SqlCommandType.SELECT, sqlSource);
