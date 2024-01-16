@@ -8,7 +8,6 @@ import org.apache.ibatis.session.Configuration;
 import org.apache.ibatis.session.SqlSession;
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.junit.Test;
-import test.entity.Goods;
 import test.mapper.GoodsMapper;
 import test.typehandler.GoodsSpecArrayTypeHandler;
 
@@ -36,7 +35,7 @@ public class JunitTest {
 
             @Override
             public boolean enableDDL() {
-                return false;
+                return true;
             }
 
             @Override
@@ -54,16 +53,17 @@ public class JunitTest {
 //            mapper.insert(goods);
 //            System.out.println(goods.getId());
 
-            final List<Goods> list = mapper.select(
-                    (root, builder) -> {
-                        return builder.and(
-                                builder.eq(root.get(Goods.Fields.goodsName), "雪碧1"),
-                                builder.gt(root.get(Goods.Fields.quantity), 1)
-                        );
-                    },
-                    null
-            );
-            System.out.println(list);
+//            final List<Goods> list = mapper.select(
+//                    (root, builder) -> {
+//                        return builder.and(
+//                                builder.eq(root.get(Goods.Fields.goodsName), "雪碧1"),
+//                                builder.gt(root.get(Goods.Fields.quantity), 1)
+//                        );
+//                    },
+//                    null
+//            );
+//            System.out.println(list);
+            mapper.updateGoodsNameQuantity("雪碧", 1, 1);
         }
     }
 }

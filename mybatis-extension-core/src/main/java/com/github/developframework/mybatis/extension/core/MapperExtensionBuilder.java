@@ -96,7 +96,7 @@ public class MapperExtensionBuilder {
         final KeyGenerator keyGenerator;
         String keyProperty = null;
         String keyColumn = null;
-        if (SqlCommandType.INSERT.equals(sqlCommandType) || SqlCommandType.UPDATE.equals(sqlCommandType)) {
+        if (SqlCommandType.INSERT.equals(sqlCommandType)) {
             // first check for SelectKey annotation - that overrides everything else
             SelectKey selectKey = getAnnotationWrapper(method, false, SelectKey.class).map(x -> (SelectKey) x.getAnnotation()).orElse(null);
             if (selectKey != null) {
