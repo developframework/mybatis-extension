@@ -7,10 +7,12 @@ import org.apache.ibatis.mapping.SqlSource;
 import org.apache.ibatis.scripting.defaults.RawSqlSource;
 import org.apache.ibatis.scripting.xmltags.DynamicSqlSource;
 import org.apache.ibatis.scripting.xmltags.MixedSqlNode;
+import org.apache.ibatis.scripting.xmltags.SqlNode;
 import org.apache.ibatis.scripting.xmltags.StaticTextSqlNode;
 import org.apache.ibatis.session.Configuration;
 
 import java.lang.reflect.Method;
+import java.util.LinkedList;
 import java.util.List;
 
 /**
@@ -24,17 +26,14 @@ public class SelectByIdSqlSourceBuilder extends AbstractSqlSourceBuilder {
 
     @Override
     public MapperMethodParseWrapper build(Configuration configuration, EntityDefinition entityDefinition, Method method) {
-        String sql = buildSql(entityDefinition, "SELECT *");
+        String sql = "SELECT * FROM " + entityDefinition.wrapTableName() + buildWhereByIdSql(entityDefinition);
         SqlSource sqlSource;
         if (entityDefinition.hasMultipleTenant()) {
-            final MixedSqlNode mixedSqlNode = new MixedSqlNode(
-                    List.of(
-                            new StaticTextSqlNode(sql),
-                            multipleTenantSqlNodes(entityDefinition),
-                            new StaticTextSqlNode(" LIMIT 1")
-                    )
-            );
-            sqlSource = new DynamicSqlSource(configuration, mixedSqlNode);
+            final List<SqlNode> sqlNodes = new LinkedList<>();
+            sqlNodes.add(new StaticTextSqlNode(sql));
+            sqlNodes.addAll(multipleTenantSqlNodes(entityDefinition));
+            sqlNodes.add(new StaticTextSqlNode(" LIMIT 1"));
+            sqlSource = new DynamicSqlSource(configuration, new MixedSqlNode(sqlNodes));
         } else {
             sql += " LIMIT 1";
             sqlSource = new RawSqlSource(configuration, sql, entityDefinition.getEntityClass());

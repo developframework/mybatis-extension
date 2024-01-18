@@ -29,7 +29,7 @@ public class SelectByIdArraySqlSourceBuilder extends AbstractSqlSourceBuilder {
     public MapperMethodParseWrapper build(Configuration configuration, EntityDefinition entityDefinition, Method method) {
         final ColumnDefinition[] idColumnDefinitions = entityDefinition.getPrimaryKeyColumnDefinitions();
         final List<SqlNode> sqlNodes = new LinkedList<>();
-        final String sql;
+        String sql;
         final String forEachItemSql;
         if (entityDefinition.isCompositeId()) {
             // 多字段 IN 操作
@@ -57,6 +57,9 @@ public class SelectByIdArraySqlSourceBuilder extends AbstractSqlSourceBuilder {
             );
             forEachItemSql = "#{id}";
         }
+        if (entityDefinition.hasLogicDelete()) {
+            sql += String.format(" AND %s = 0", entityDefinition.getLogicDeleteColumnDefinition().wrapColumn());
+        }
         sqlNodes.add(new StaticTextSqlNode(sql));
         sqlNodes.add(
                 new ForEachSqlNode(
@@ -73,7 +76,7 @@ public class SelectByIdArraySqlSourceBuilder extends AbstractSqlSourceBuilder {
         );
 
         if (entityDefinition.hasMultipleTenant()) {
-            sqlNodes.add(multipleTenantSqlNodes(entityDefinition));
+            sqlNodes.addAll(multipleTenantSqlNodes(entityDefinition));
         }
         SqlSource sqlSource = new DynamicSqlSource(configuration, new MixedSqlNode(sqlNodes));
         return new MapperMethodParseWrapper(SqlCommandType.SELECT, sqlSource);

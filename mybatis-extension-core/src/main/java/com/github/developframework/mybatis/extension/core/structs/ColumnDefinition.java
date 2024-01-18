@@ -28,6 +28,8 @@ public class ColumnDefinition {
 
     private boolean version;
 
+    private boolean logicDelete;
+
     private boolean useGeneratedKey;
 
     private boolean primaryKey;

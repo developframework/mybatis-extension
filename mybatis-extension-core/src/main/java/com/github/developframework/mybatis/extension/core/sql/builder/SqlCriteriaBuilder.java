@@ -83,11 +83,19 @@ public class SqlCriteriaBuilder {
     }
 
     public SqlCriteria isNull(SqlFieldPart fieldPart) {
-        return simpleCommonWithNull(fieldPart, Operate.ISNULL);
+        return simpleCommonLiteral(fieldPart, Operate.ISNULL);
     }
 
     public SqlCriteria isNotNull(SqlFieldPart fieldPart) {
-        return simpleCommonWithNull(fieldPart, Operate.NOTNULL);
+        return simpleCommonLiteral(fieldPart, Operate.NOTNULL);
+    }
+
+    public SqlCriteria eqTrue(SqlFieldPart fieldPart) {
+        return simpleCommonLiteral(fieldPart, Operate.EQ_TRUE);
+    }
+
+    public SqlCriteria eqFalse(SqlFieldPart fieldPart) {
+        return simpleCommonLiteral(fieldPart, Operate.EQ_FALSE);
     }
 
     public SqlCriteria like(SqlFieldPart fieldPart, String value) {
@@ -217,7 +225,7 @@ public class SqlCriteriaBuilder {
         };
     }
 
-    private SqlCriteria simpleCommonWithNull(SqlFieldPart fieldPart, Operate operate) {
+    private SqlCriteria simpleCommonLiteral(SqlFieldPart fieldPart, Operate operate) {
         return new FieldSqlCriteria(configuration) {
             @Override
             public Function<Interval, SqlNode> toSqlNode() {

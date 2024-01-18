@@ -23,11 +23,18 @@ public class SelectAllSqlSourceBuilder extends AbstractSqlSourceBuilder {
     @Override
     public MapperMethodParseWrapper build(Configuration configuration, EntityDefinition entityDefinition, Method method) {
         final List<SqlNode> sqlNodes = new LinkedList<>();
-        sqlNodes.add(new StaticTextSqlNode("SELECT * FROM " + entityDefinition.wrapTableName()));
-        if (entityDefinition.hasMultipleTenant()) {
-            sqlNodes.add(new WhereSqlNode(configuration, multipleTenantSqlNodes(entityDefinition)));
+        if (entityDefinition.hasLogicDelete()) {
+            sqlNodes.add(new StaticTextSqlNode(String.format("%s = 0", entityDefinition.getLogicDeleteColumnDefinition().wrapColumn())));
         }
-        SqlSource sqlSource = new DynamicSqlSource(configuration, new MixedSqlNode(sqlNodes));
+        if (entityDefinition.hasMultipleTenant()) {
+            sqlNodes.addAll(multipleTenantSqlNodes(entityDefinition));
+        }
+        SqlSource sqlSource = new DynamicSqlSource(configuration, new MixedSqlNode(
+                List.of(
+                        new StaticTextSqlNode("SELECT * FROM " + entityDefinition.wrapTableName()),
+                        new WhereSqlNode(configuration, new MixedSqlNode(sqlNodes))
+                )
+        ));
         return new MapperMethodParseWrapper(SqlCommandType.SELECT, sqlSource);
     }
 }

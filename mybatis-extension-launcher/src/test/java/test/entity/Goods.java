@@ -2,6 +2,7 @@ package test.entity;
 
 import com.github.developframework.mybatis.extension.core.annotation.Column;
 import com.github.developframework.mybatis.extension.core.annotation.Id;
+import com.github.developframework.mybatis.extension.core.annotation.LogicDelete;
 import com.github.developframework.mybatis.extension.core.annotation.Table;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -37,6 +38,9 @@ public class Goods extends AuditPO {
 
     @Column(typeHandler = GoodsSpecArrayTypeHandler.class)
     private GoodsSpec[] goodsSpecs;
+
+    @LogicDelete
+    private boolean delete;
 
     public Goods(String goodsName, Integer quantity) {
         this.goodsName = goodsName;

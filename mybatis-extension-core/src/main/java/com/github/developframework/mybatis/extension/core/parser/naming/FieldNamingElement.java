@@ -33,9 +33,16 @@ public class FieldNamingElement implements NamingElement {
      */
     public SqlNode buildSqlNode(Configuration configuration, Interval interval, Method method, List<NamingMethodParameter> namingMethodParameters, int i) {
         final String separator = interval == null ? "" : interval.getText();
-        final NamingMethodParameter parameter = namingMethodParameters.get(i - 1);
-        final String column = column(parameter);
-        final String param = parameter.getKey();
+        final String column;
+        final String param;
+        if (namingMethodParameters.isEmpty()) {
+            column = column(null);
+            param = null;
+        } else {
+            final NamingMethodParameter parameter = namingMethodParameters.get(i - 1);
+            column = column(parameter);
+            param = parameter.getKey();
+        }
 
         final boolean dynamic = method.isAnnotationPresent(Dynamic.class);
         return switch (operate) {
@@ -47,7 +54,7 @@ public class FieldNamingElement implements NamingElement {
                     yield new TextSqlNode(separator + text);
                 }
             }
-            case ISNULL, NOTNULL -> {
+            case ISNULL, NOTNULL, EQ_TRUE, EQ_FALSE -> {
                 String text = String.format(operate.getFormat(), column);
                 yield new TextSqlNode(separator + text);
             }
@@ -101,10 +108,12 @@ public class FieldNamingElement implements NamingElement {
     }
 
     private String column(NamingMethodParameter parameter) {
-        final SqlCustomized sqlCustomized = parameter.getSqlCustomized();
-        if (sqlCustomized != null) {
-            final String function = sqlCustomized.value();
-            return function.isEmpty() ? columnDefinition.wrapColumn() : String.format(function, columnDefinition.wrapColumn());
+        if (parameter != null) {
+            final SqlCustomized sqlCustomized = parameter.getSqlCustomized();
+            if (sqlCustomized != null) {
+                final String function = sqlCustomized.value();
+                return function.isEmpty() ? columnDefinition.wrapColumn() : String.format(function, columnDefinition.wrapColumn());
+            }
         }
         return columnDefinition.wrapColumn();
     }

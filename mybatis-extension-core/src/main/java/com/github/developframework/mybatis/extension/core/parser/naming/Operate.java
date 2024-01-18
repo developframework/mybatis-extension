@@ -41,7 +41,11 @@ public enum Operate {
 
     IN("in", 1, "%s IN "),
 
-    NOT_IN("notIn", 1, "%s NOT IN ");
+    NOT_IN("notIn", 1, "%s NOT IN "),
+
+    EQ_TRUE("true", 0, "%s = 1"),
+
+    EQ_FALSE("false", 0, "%s = 0");
 
     // 关键字
     private final String keyword;

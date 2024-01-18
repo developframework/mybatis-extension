@@ -11,10 +11,10 @@ import com.github.developframework.mybatis.extension.core.sql.SqlSortPart;
 import com.github.developframework.mybatis.extension.core.sql.builder.SqlCriteriaAssembler;
 import com.github.developframework.mybatis.extension.core.sql.builder.SqlCriteriaBuilder;
 import com.github.developframework.mybatis.extension.core.sql.builder.SqlRoot;
+import com.github.developframework.mybatis.extension.core.structs.ColumnDefinition;
 import com.github.developframework.mybatis.extension.core.structs.EntityDefinition;
 import com.github.developframework.mybatis.extension.core.structs.MappedStatementMetadata;
 import com.github.developframework.mybatis.extension.core.utils.MybatisUtils;
-import org.apache.commons.lang3.ArrayUtils;
 import org.apache.ibatis.binding.MapperMethod;
 import org.apache.ibatis.builder.StaticSqlSource;
 import org.apache.ibatis.mapping.MappedStatement;
@@ -23,7 +23,7 @@ import org.apache.ibatis.scripting.xmltags.*;
 import org.apache.ibatis.session.Configuration;
 
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -41,39 +41,15 @@ public class SqlCriteriaAssemblerInnerInterceptor implements InnerInterceptor {
         if (metadata.isHasSqlCriteriaAssembler()) {
             final SqlCriteriaAssembler sqlCriteriaAssembler = MybatisUtils.find(parameter, SqlCriteriaAssembler.class);
 
-            MappedStatement mappedStatement = (MappedStatement) args[0];
+            final MappedStatement mappedStatement = (MappedStatement) args[0];
             final Configuration configuration = mappedStatement.getConfiguration();
             final EntityDefinition entityDefinition = context.getEntityDefinition();
-            final SqlRoot root = new SqlRoot(entityDefinition);
             final SqlCriteriaBuilder builder = new SqlCriteriaBuilder(configuration, entityDefinition);
-            SqlCriteria sqlCriteria = null;
-            if (sqlCriteriaAssembler != null) {
-                sqlCriteria = sqlCriteriaAssembler.assemble(root, builder);
-            }
-
-            // 多租户
-            if (entityDefinition.hasMultipleTenant()) {
-                final SqlCriteria[] addSqlCriterias = Arrays
-                        .stream(entityDefinition.getMultipleTenantColumnDefinitions())
-                        .map(cd -> {
-                            final AutoInjectProvider autoInjectProvider = context.getAutoInjectProviderRegistry().getAutoInjectProvider(cd.getAutoInjectProviderClass());
-                            final Object provideValue = autoInjectProvider.provide(entityDefinition, cd, parameter);
-                            return builder.eq(root.get(cd.getProperty()), provideValue);
-                        })
-                        .toArray(SqlCriteria[]::new);
-                if (sqlCriteria == null) {
-                    sqlCriteria = new MixedSqlCriteria(configuration, Interval.AND, addSqlCriterias);
-                } else if (addSqlCriterias.length == 1) {
-                    sqlCriteria = new MixedSqlCriteria(configuration, Interval.AND, new SqlCriteria[]{addSqlCriterias[0], sqlCriteria});
-                } else {
-                    sqlCriteria = new MixedSqlCriteria(configuration, Interval.AND, ArrayUtils.add(addSqlCriterias, sqlCriteria));
-                }
-            }
-
+            final SqlCriteria finalSqlCriteria = mergeSqlCriteria(context, configuration, entityDefinition, parameter, builder, sqlCriteriaAssembler);
             final SqlSortPart sqlSortPart = MybatisUtils.find(parameter, SqlSortPart.class);
 
             // 改写MappedStatement
-            args[0] = buildMappedStatement(metadata, mappedStatement, entityDefinition, sqlCriteria, sqlSortPart);
+            args[0] = buildMappedStatement(metadata, mappedStatement, entityDefinition, finalSqlCriteria, sqlSortPart);
 
             // 填充参数
             final MapperMethod.ParamMap<Object> criteriaParamMap = builder.getCriteriaParamMap();
@@ -84,6 +60,35 @@ public class SqlCriteriaAssemblerInnerInterceptor implements InnerInterceptor {
             }
         }
         return innerInvocation.proceed();
+    }
+
+    private SqlCriteria mergeSqlCriteria(InterceptContext context, Configuration configuration, EntityDefinition entityDefinition, Object parameter, SqlCriteriaBuilder builder, SqlCriteriaAssembler sqlCriteriaAssembler) {
+        final SqlRoot root = new SqlRoot(entityDefinition);
+        final List<SqlCriteria> sqlCriteriaList = new LinkedList<>();
+        SqlCriteria sqlCriteria = null;
+        if (sqlCriteriaAssembler != null) {
+            sqlCriteria = sqlCriteriaAssembler.assemble(root, builder);
+        }
+
+        if (sqlCriteria != null) {
+            sqlCriteriaList.add(sqlCriteria);
+        }
+
+        // 多租户
+        if (entityDefinition.hasMultipleTenant()) {
+            for (ColumnDefinition cd : entityDefinition.getMultipleTenantColumnDefinitions()) {
+                final AutoInjectProvider autoInjectProvider = context.getAutoInjectProviderRegistry().getAutoInjectProvider(cd.getAutoInjectProviderClass());
+                final Object provideValue = autoInjectProvider.provide(entityDefinition, cd, parameter);
+                sqlCriteriaList.add(builder.eq(root.get(cd.getProperty()), provideValue));
+            }
+        }
+
+        // 逻辑删除
+        if (entityDefinition.hasLogicDelete()) {
+            final ColumnDefinition cd = entityDefinition.getLogicDeleteColumnDefinition();
+            sqlCriteriaList.add(builder.eqFalse(root.get(cd.getProperty())));
+        }
+        return new MixedSqlCriteria(configuration, Interval.AND, sqlCriteriaList.toArray(SqlCriteria[]::new));
     }
 
     /**

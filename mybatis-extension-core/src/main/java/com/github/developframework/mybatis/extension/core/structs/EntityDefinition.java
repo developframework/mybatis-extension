@@ -46,6 +46,9 @@ public class EntityDefinition {
     // 乐观锁版本字段
     private final ColumnDefinition versionColumnDefinition;
 
+    // 逻辑删除标记字段
+    private final ColumnDefinition logicDeleteColumnDefinition;
+
     // 索引
     private final IndexDefinition[] indexDefinitions;
 
@@ -66,6 +69,7 @@ public class EntityDefinition {
         ColumnDefinition preparatoryPrimaryKeyColumnDefinition = null;
 
         ColumnDefinition versionColumnDefinition = null;
+        ColumnDefinition logicDeleteColumnDefinition = null;
 
         for (Field field : MybatisUtils.getAllFields(entityClass)) {
             // 处理@Transient
@@ -108,6 +112,15 @@ public class EntityDefinition {
                 }
                 columnDefinition.setVersion(true);
                 versionColumnDefinition = columnDefinition;
+            }
+
+            // 处理@LogicDelete
+            if (field.isAnnotationPresent(LogicDelete.class) && field.getType() == boolean.class) {
+                if (logicDeleteColumnDefinition != null) {
+                    throw new IllegalArgumentException(entityClass + "只能标注一个字段为@LogicDelete");
+                }
+                columnDefinition.setLogicDelete(true);
+                logicDeleteColumnDefinition = columnDefinition;
             }
 
             if (preparatoryPrimaryKeyColumnDefinition == null && field.getName().equals(DEFAULT_ID)) {
@@ -159,6 +172,7 @@ public class EntityDefinition {
         this.multipleTenantColumnDefinitions = multipleTenantColumnDefinitionList.toArray(ColumnDefinition[]::new);
         this.autoInjectColumnDefinitions = autoInjectColumnDefinitionList.toArray(ColumnDefinition[]::new);
         this.versionColumnDefinition = versionColumnDefinition;
+        this.logicDeleteColumnDefinition = logicDeleteColumnDefinition;
 
         // 处理@Index
         this.indexDefinitions = parseIndexes(table.indexes());
@@ -225,6 +239,13 @@ public class EntityDefinition {
      */
     public boolean hasOptimisticLock() {
         return versionColumnDefinition != null;
+    }
+
+    /**
+     * 是否有逻辑删除
+     */
+    public boolean hasLogicDelete() {
+        return logicDeleteColumnDefinition != null;
     }
 
     /**

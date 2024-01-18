@@ -26,11 +26,11 @@ public class SelectByIdLockSqlSourceBuilder extends AbstractSqlSourceBuilder {
 
     @Override
     public MapperMethodParseWrapper build(Configuration configuration, EntityDefinition entityDefinition, Method method) {
-        final String sql = buildSql(entityDefinition, "SELECT *");
+        final String sql = "SELECT * FROM " + entityDefinition.wrapTableName() + buildWhereByIdSql(entityDefinition);
         final List<SqlNode> sqlNodes = new LinkedList<>();
         sqlNodes.add(new StaticTextSqlNode(sql));
         if (entityDefinition.hasMultipleTenant()) {
-            sqlNodes.add(multipleTenantSqlNodes(entityDefinition));
+            sqlNodes.addAll(multipleTenantSqlNodes(entityDefinition));
         }
         sqlNodes.add(new StaticTextSqlNode(" LIMIT 1"));
         sqlNodes.add(lockChooseSqlNode());
