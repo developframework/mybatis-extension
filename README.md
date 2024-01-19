@@ -132,6 +132,13 @@ public class GoodsPO {
     // 创建时间
     @CreateTime
     private LocalDateTime createTime;
+    
+    // 上架
+    private boolean enable;
+    
+    // 逻辑删除标识
+    @LogicDelete
+    private boolean delete;
 
     // 规格 多个值
     @Column(nullable = false, typeHandler = StringArrayTypeHandler.class) // 标注自定义类型处理器
@@ -141,15 +148,16 @@ public class GoodsPO {
 
 预设注解：
 
-| 注解              | 说明                   |
-| --------------- | -------------------- |
-| @Table          | 标注表信息                |
-| @Id             | 标注主键                 |
+| 注解            | 说明                                     |
+| --------------- | ---------------------------------------- |
+| @Table          | 标注表信息                               |
+| @Id             | 标注主键                                 |
 | @Column         | 标注字段特性（没有特殊指定特性可不标注） |
-| @Transient      | 排除字段，不属于数据库字段        |
-| @Version        | 乐观锁字段，详见乐观锁章节        |
-| @CreateTime     | 自动注入创建时间，详见自动注入章节    |
-| @LastModifyTime | 自动注入修改时间，详见自动注入章节    |
+| @Transient      | 排除字段，不属于数据库字段               |
+| @Version        | 乐观锁字段，详见乐观锁章节               |
+| @CreateTime     | 自动注入创建时间，详见自动注入章节       |
+| @LastModifyTime | 自动注入修改时间，详见自动注入章节       |
+| @LogicDelete    | 逻辑删除标识，详见逻辑删除章节           |
 
 #### @Table
 
@@ -266,6 +274,10 @@ goodsMapper.update(goods);
 当`nullable=true`时对象内的null值字段会被修改成null
 
 当`nullable=false`时对象内的null值会被跳过不修改
+
+### 逻辑删除
+
+提供`@LogicDelete`注解标注逻辑删除字段
 
 ### 自动注入
 
@@ -425,6 +437,8 @@ int updateGoodsNameQuantity(Goods goods);
 | 关键字       | 示例   | 等价SQL语句  |
 | --------- | -------------- | ------------------- |
 | EQ        | selectByGoodsName(String GoodsName) 或 selectByGoodsName**Eq**(String GoodsName) | WHERE goods_name= #{param1}                          |
+| EQ_TRUE | selectByEnable**True**() | WHERE enable = 1 |
+| EQ_FALSE | selectByEnable**False**() | WHERE enable = 0 |
 | ISNULL    | selectByGoodsName**IsNull**()                                                   | WHERE goods_name IS NULL                             |
 | NOTNULL   | selectByGoodsName**NotNull**()                                                  | WHERE goods_name IS NOT NULL                         |
 | GT        | selectByQuantity**Gt**(int quantity)                                            | WHERE quantity > #{param1}                           |
