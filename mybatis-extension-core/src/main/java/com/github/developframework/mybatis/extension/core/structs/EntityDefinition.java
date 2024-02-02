@@ -142,6 +142,7 @@ public class EntityDefinition {
                     columnDefinition.setAutoInjectProviderClass(null);
                 } else {
                     columnDefinition.setAutoInjectProviderClass(IdGeneratorAutoInjectProvider.class);
+                    autoInjectColumnDefinitionList.add(columnDefinition);
                 }
                 primaryKeyColumnDefinitionList.add(columnDefinition);
             }

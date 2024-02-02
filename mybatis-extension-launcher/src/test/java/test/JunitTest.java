@@ -2,7 +2,7 @@ package test;
 
 import com.github.developframework.mybatis.extension.core.autoinject.AutoInjectProvider;
 import com.github.developframework.mybatis.extension.launcher.DataSourceMetadata;
-import com.github.developframework.mybatis.extension.launcher.ExtensionMybatisLauncher;
+import com.github.developframework.mybatis.extension.launcher.MybatisExtensionLauncher;
 import com.github.developframework.mybatis.extension.launcher.MybatisCustomize;
 import org.apache.ibatis.session.Configuration;
 import org.apache.ibatis.session.SqlSession;
@@ -26,7 +26,7 @@ public class JunitTest {
                 .setUsername("root")
                 .setPassword("pgc%DB112");
 
-        SqlSessionFactory sqlSessionFactory = ExtensionMybatisLauncher.open(metadata, new MybatisCustomize() {
+        SqlSessionFactory sqlSessionFactory = MybatisExtensionLauncher.open(metadata, new MybatisCustomize() {
 
             @Override
             public void handleConfiguration(Configuration configuration) {

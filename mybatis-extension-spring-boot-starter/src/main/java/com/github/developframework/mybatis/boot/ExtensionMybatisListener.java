@@ -4,7 +4,7 @@ import com.github.developframework.mybatis.extension.core.autoinject.AutoInjectP
 import com.github.developframework.mybatis.extension.core.idgenerator.IdGenerator;
 import com.github.developframework.mybatis.extension.core.idgenerator.IdGeneratorRegistry;
 import com.github.developframework.mybatis.extension.core.interceptors.MybatisExtensionInterceptor;
-import com.github.developframework.mybatis.extension.launcher.ExtensionMybatisLauncher;
+import com.github.developframework.mybatis.extension.launcher.MybatisExtensionLauncher;
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.context.ApplicationContext;
@@ -33,7 +33,7 @@ public class ExtensionMybatisListener implements ApplicationListener<ContextRefr
         }
 
         for (SqlSessionFactory sqlSessionFactory : sqlSessionFactoryObjectProvider) {
-            ExtensionMybatisLauncher.configureSqlSessionFactory(
+            MybatisExtensionLauncher.configureSqlSessionFactory(
                     sqlSessionFactory,
                     mybatisExtensionInterceptor,
                     autoInjectProviderRegistry,

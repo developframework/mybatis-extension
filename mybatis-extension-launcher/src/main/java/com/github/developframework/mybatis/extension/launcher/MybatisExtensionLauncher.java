@@ -27,7 +27,7 @@ import java.util.List;
 /**
  * @author qiushui on 2023-08-30.
  */
-public class ExtensionMybatisLauncher {
+public class MybatisExtensionLauncher {
 
     public static SqlSessionFactory open(DataSourceMetadata dataSourceMetadata, MybatisCustomize customize) {
         DataSource dataSource = buildDefaultDataSource(dataSourceMetadata);
