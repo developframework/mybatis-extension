@@ -7,6 +7,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
+ * MappedStatement 元数据注册器
+ *
  * @author qiushui on 2023-09-18.
  */
 public class MappedStatementMetadataRegistry {

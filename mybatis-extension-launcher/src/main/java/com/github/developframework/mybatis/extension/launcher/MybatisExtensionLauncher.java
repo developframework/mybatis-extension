@@ -25,6 +25,8 @@ import javax.sql.DataSource;
 import java.util.List;
 
 /**
+ * mybatis扩展启动器
+ *
  * @author qiushui on 2023-08-30.
  */
 public class MybatisExtensionLauncher {
@@ -65,6 +67,9 @@ public class MybatisExtensionLauncher {
         return sqlSessionFactory;
     }
 
+    /**
+     * 配置SqlSessionFactory
+     */
     public static void configureSqlSessionFactory(
             SqlSessionFactory sqlSessionFactory,
             MybatisExtensionInterceptor mybatisExtensionInterceptor,

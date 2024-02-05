@@ -12,6 +12,8 @@ import org.apache.ibatis.session.SqlSessionFactory;
 import java.util.*;
 
 /**
+ * 数据库DDL执行器
+ *
  * @author qiushui on 2023-09-01.
  */
 @Slf4j

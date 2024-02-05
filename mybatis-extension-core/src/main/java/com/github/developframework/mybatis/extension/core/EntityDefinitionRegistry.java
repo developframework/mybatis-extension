@@ -6,6 +6,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
+ * 实体定义注册器
+ *
  * @author qiushui on 2023-08-30.
  */
 public class EntityDefinitionRegistry {

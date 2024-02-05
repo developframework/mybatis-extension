@@ -13,16 +13,28 @@ import java.util.List;
 @FunctionalInterface
 public interface MybatisCustomize {
 
+    /**
+     * 额外处理配置
+     */
     void handleConfiguration(Configuration configuration);
 
+    /**
+     * 开启DDL
+     */
     default boolean enableDDL() {
         return false;
     }
 
+    /**
+     * 自定义自动注入提供器
+     */
     default List<? extends AutoInjectProvider> customAutoInjectProviders() {
         return Collections.emptyList();
     }
 
+    /**
+     * 自定义ID生成器
+     */
     default List<? extends IdGenerator> customIdGenerators() {
         return Collections.emptyList();
     }
