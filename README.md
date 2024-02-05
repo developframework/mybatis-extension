@@ -82,25 +82,25 @@ try (SqlSession sqlSession = sqlSessionFactory.openSession(true)) {
 
 提供通用方法
 
-| 方法                | 说明                                      |
-| ------------------- | ----------------------------------------- |
-| insert              | 插入记录                                  |
-| insertAll           | 批量插入记录                              |
-| replace             | 替换记录                                  |
-| replaceAll          | 批量替换记录                              |
-| update              | 更新记录                                  |
-| deleteById          | 根据id删除记录                            |
-| existsById          | 根据id查询存在                            |
-| selectById          | 根据id查询记录                            |
-| selectByIdLock      | 根据id查询记录（可以锁）                  |
-| selectByIdArray     | 根据id数组查询记录                        |
-| selectByIdArrayLock | 根据id数组查询记录（可以锁）              |
-| selectByIds         | 根据id集合查询记录                        |
-| selectByIdsLock     | 根据id集合查询记录（可以锁）              |
-| selectAll           | 查询所有记录                              |
-| exists              | 根据SelectSqlAssembler拼装SQL查询存在     |
-| select              | 根据SelectSqlAssembler拼装SQL查询记录     |
-| selectPager         | 根据SelectSqlAssembler拼装SQL分页查询记录 |
+| 方法                | 说明                                        |
+| ------------------- | ------------------------------------------- |
+| insert              | 插入记录                                    |
+| insertAll           | 批量插入记录                                |
+| replace             | 替换记录                                    |
+| replaceAll          | 批量替换记录                                |
+| update              | 更新记录                                    |
+| deleteById          | 根据id删除记录                              |
+| existsById          | 根据id查询存在                              |
+| selectById          | 根据id查询记录                              |
+| selectByIdLock      | 根据id查询记录（可以锁）                    |
+| selectByIdArray     | 根据id数组查询记录                          |
+| selectByIdArrayLock | 根据id数组查询记录（可以锁）                |
+| selectByIds         | 根据id集合查询记录                          |
+| selectByIdsLock     | 根据id集合查询记录（可以锁）                |
+| selectAll           | 查询所有记录                                |
+| exists              | 根据SqlCriteriaAssembler拼装SQL查询存在     |
+| select              | 根据SqlCriteriaAssembler拼装SQL查询记录     |
+| selectPager         | 根据SqlCriteriaAssembler拼装SQL分页查询记录 |
 
 示例：
 
@@ -386,7 +386,7 @@ int pageTotal = page.getPageTotal(); // 获取分页总数
 page.forEach(item -> {}); // page对象实际上是List，可以迭代处理本页数据
 ```
 
-+ 方法多参数时，`Pager`可以任意放置
++ 方法多参数时，`Pager`可以任意位置放置
 + `@CountStatement`注解以及查询数量的statement不是必须的，如果主查询列表的语句是简单SELECT语句，可以略写该注解采用自动生成的查询总条数的SELECT
   COUNT语句；如果主查询列表语句是一个JOIN或嵌套子查询，`@CountStatement`可以重定义一个简单的SELECT COUNT语句
 
@@ -458,8 +458,6 @@ int updateGoodsNameQuantity(Goods goods);
 + `BETWEEN`   如果开始值或结束值为空则会转变为GTE或LTE
 + 该方式只支持简单条件拼接，**不支持带括号的OR多条件查询**
 + **方法参数的顺序必须严格按照方法名描述的顺序申明**，`BETWEEN`可以占用两个参数，内部是以mybatis的参数命名方式`paramN`取值的，**所以不必使用`@Param`注解**
-
-使用`@Select(SQL_BY_NAMING)`标注在方法上申明采用命名方式生成SQL，可以使用`@SqlCustomized`对字段进行函数处理
 
 ```java
 public interface GoodsMapper extends BaseMapper<GoodsPO, Integer> {
@@ -604,13 +602,12 @@ SELECT * FROM `goods` WHERE name = #{name} LOCK IN SHARE MODE
 
 ### 自动建表 （DDL）
 
-结合模块`happy-develop-framework-resource-mybatis`使用，有个开关可以开启（默认关闭）：
+结合模块`mybatis-extension-spring-boot-starter`使用，有个开关可以开启（默认关闭）：
 
 ```yml
-# 开启DDL
-resource:
-  mybatis:
-    enableDDL: true
+mybatis:
+  extension:
+    enableDDL: true # 开启自动创建表
 ```
 
 #### 创建/修改表
