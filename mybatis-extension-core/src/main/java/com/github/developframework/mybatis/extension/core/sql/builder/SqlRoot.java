@@ -35,7 +35,7 @@ public class SqlRoot {
                                 } else {
                                     return NameUtils.literal(property);
                                 }
-                            } else if (arg instanceof SqlFunction sf) {
+                            } else if (arg instanceof SqlFieldPart sf) {
                                 return sf.toSql();
                             } else {
                                 return arg.toString();
