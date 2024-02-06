@@ -396,7 +396,7 @@ page.forEach(item -> {}); // page对象实际上是List，可以迭代处理本�
 
 ```sql
 -- 主列表查询
-SELECT * FROM goods
+SELECT * FROM goods WHERE goods_name = #{goodsName}
 -- 自动生成的查询总数语句
 SELECT COUNT(*) FROM (SELECT * FROM goods WHERE goods_name = #{goodsName}) _count
 ```
