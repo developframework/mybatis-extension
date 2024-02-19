@@ -47,11 +47,21 @@ public class FieldNamingElement implements NamingElement {
         final boolean dynamic = method.isAnnotationPresent(Dynamic.class);
         return switch (operate) {
             default -> {
-                final String text = String.format(operate.getFormat(), column, columnDefinition.getColumnMybatisPlaceholder().placeholder(param));
+                final TextSqlNode textSqlNode = new TextSqlNode(separator + String.format(operate.getFormat(), column, columnDefinition.getColumnMybatisPlaceholder().placeholder(param)));
                 if (dynamic) {
-                    yield new IfSqlNode(new TextSqlNode(separator + text), param + " neq null");
+                    yield new IfSqlNode(textSqlNode, param + " neq null");
                 } else {
-                    yield new TextSqlNode(separator + text);
+                    yield textSqlNode;
+                }
+            }
+            case EQ, NE -> {
+                final TextSqlNode textSqlNode = new TextSqlNode(separator + String.format(operate.getFormat(), column, columnDefinition.getColumnMybatisPlaceholder().placeholder(param)));
+                if (dynamic) {
+                    yield new IfSqlNode(textSqlNode, param + " neq null");
+                } else {
+                    final IfSqlNode ifSqlNode = new IfSqlNode(textSqlNode, param + " neq null");
+                    final TextSqlNode defaultSqlNode = new TextSqlNode(separator + String.format((operate == Operate.EQ ? Operate.ISNULL : Operate.NOTNULL).getFormat(), column));
+                    yield new ChooseSqlNode(List.of(ifSqlNode), defaultSqlNode);
                 }
             }
             case ISNULL, NOTNULL, EQ_TRUE, EQ_FALSE -> {
