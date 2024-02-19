@@ -48,11 +48,7 @@ public class FieldNamingElement implements NamingElement {
         return switch (operate) {
             default -> {
                 final TextSqlNode textSqlNode = new TextSqlNode(separator + String.format(operate.getFormat(), column, columnDefinition.getColumnMybatisPlaceholder().placeholder(param)));
-                if (dynamic) {
-                    yield new IfSqlNode(textSqlNode, param + " neq null");
-                } else {
-                    yield textSqlNode;
-                }
+                yield dynamic ? new IfSqlNode(textSqlNode, param + " neq null") : textSqlNode;
             }
             case EQ, NE -> {
                 final TextSqlNode textSqlNode = new TextSqlNode(separator + String.format(operate.getFormat(), column, columnDefinition.getColumnMybatisPlaceholder().placeholder(param)));
@@ -64,10 +60,8 @@ public class FieldNamingElement implements NamingElement {
                     yield new ChooseSqlNode(List.of(ifSqlNode), defaultSqlNode);
                 }
             }
-            case ISNULL, NOTNULL, EQ_TRUE, EQ_FALSE -> {
-                String text = String.format(operate.getFormat(), column);
-                yield new TextSqlNode(separator + text);
-            }
+            case ISNULL, NOTNULL, EQ_TRUE, EQ_FALSE ->
+                    new TextSqlNode(separator + String.format(operate.getFormat(), column));
             case IN, NOT_IN -> {
                 final String collectionExpression = MybatisUtils.getCollectionExpression(method, param);
                 final SqlNode inSqlNode = inSqlNode(configuration, separator, collectionExpression, operate.getFormat());
