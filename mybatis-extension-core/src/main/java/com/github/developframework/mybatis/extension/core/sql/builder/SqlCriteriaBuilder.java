@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 /**
  * @author qiushui on 2023-09-15.
@@ -191,6 +192,10 @@ public class SqlCriteriaBuilder {
                 };
             }
         };
+    }
+
+    public SqlCriteria complex(Supplier<SqlCriteria> supplier) {
+        return supplier.get();
     }
 
     public SqlCriteria complex(Function<Interval, SqlNode> function) {
