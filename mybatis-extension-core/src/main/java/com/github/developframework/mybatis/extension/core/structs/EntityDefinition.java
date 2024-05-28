@@ -106,21 +106,29 @@ public class EntityDefinition {
             }
 
             // 处理@Version
-            if (field.isAnnotationPresent(Version.class) && (field.getType() == int.class || field.getType() == long.class)) {
-                if (versionColumnDefinition != null) {
-                    throw new IllegalArgumentException(entityClass + "只能标注一个字段为@Version");
+            if (field.isAnnotationPresent(Version.class)) {
+                if (field.getType() == int.class || field.getType() == long.class) {
+                    if (versionColumnDefinition != null) {
+                        throw new IllegalArgumentException(entityClass + "只能标注一个字段为@Version");
+                    }
+                    columnDefinition.setVersion(true);
+                    versionColumnDefinition = columnDefinition;
+                } else {
+                    throw new IllegalArgumentException(entityClass + " @Version不支持属性字段类型为" + field.getType());
                 }
-                columnDefinition.setVersion(true);
-                versionColumnDefinition = columnDefinition;
             }
 
             // 处理@LogicDelete
-            if (field.isAnnotationPresent(LogicDelete.class) && field.getType() == boolean.class) {
+            if (field.isAnnotationPresent(LogicDelete.class)) {
                 if (logicDeleteColumnDefinition != null) {
                     throw new IllegalArgumentException(entityClass + "只能标注一个字段为@LogicDelete");
                 }
-                columnDefinition.setLogicDelete(true);
-                logicDeleteColumnDefinition = columnDefinition;
+                if (field.getType() == boolean.class) {
+                    columnDefinition.setLogicDelete(true);
+                    logicDeleteColumnDefinition = columnDefinition;
+                } else {
+                    throw new IllegalArgumentException(entityClass + " @LogicDelete不支持属性字段类型为" + field.getType());
+                }
             }
 
             if (preparatoryPrimaryKeyColumnDefinition == null && field.getName().equals(DEFAULT_ID)) {

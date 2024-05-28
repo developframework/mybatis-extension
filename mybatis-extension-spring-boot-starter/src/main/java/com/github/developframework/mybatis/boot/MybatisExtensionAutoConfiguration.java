@@ -1,9 +1,9 @@
 package com.github.developframework.mybatis.boot;
 
-import com.github.developframework.mybatis.extension.core.autoinject.AuditCreateTimeAutoInjectProvider;
-import com.github.developframework.mybatis.extension.core.autoinject.AuditModifyTimeAutoInjectProvider;
-import com.github.developframework.mybatis.extension.core.autoinject.AutoInjectProvider;
-import com.github.developframework.mybatis.extension.core.autoinject.AutoInjectProviderRegistry;
+import com.github.developframework.mybatis.extension.core.autoinject.*;
+import com.github.developframework.mybatis.extension.core.idgenerator.AutoIncrementIdGenerator;
+import com.github.developframework.mybatis.extension.core.idgenerator.IdGenerator;
+import com.github.developframework.mybatis.extension.core.idgenerator.IdGeneratorRegistry;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -21,6 +21,16 @@ public class MybatisExtensionAutoConfiguration {
         final AutoInjectProviderRegistry registry = new AutoInjectProviderRegistry();
         autoInjectProviders.forEach(provider -> registry.put(provider.getClass(), provider));
         return registry;
+    }
+
+    @Bean
+    public IdGeneratorAutoInjectProvider idGeneratorAutoInjectProvider(ObjectProvider<IdGenerator> idGenerators) {
+        IdGeneratorRegistry idGeneratorRegistry = new IdGeneratorRegistry();
+        idGeneratorRegistry.register(new AutoIncrementIdGenerator());
+        for (IdGenerator idGenerator : idGenerators) {
+            idGeneratorRegistry.register(idGenerator);
+        }
+        return new IdGeneratorAutoInjectProvider(idGeneratorRegistry);
     }
 
     @Bean

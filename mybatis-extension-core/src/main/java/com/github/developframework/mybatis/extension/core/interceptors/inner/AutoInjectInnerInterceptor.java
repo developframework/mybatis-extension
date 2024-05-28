@@ -140,8 +140,8 @@ public class AutoInjectInnerInterceptor implements InnerInterceptor {
                     final Field field = MybatisUtils.getField(entityClass, columnDefinition.getProperty());
                     field.setAccessible(true);
                     Object value = field.get(entity);
-                    // 原来没值
-                    if (value == null) {
+                    // 原来没值或是更新操作
+                    if (value == null || sqlCommandType == SqlCommandType.UPDATE) {
                         value = autoInjectProvider.provide(entityDefinition, columnDefinition, entity);
                         field.set(entity, value);
                     }

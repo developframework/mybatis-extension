@@ -9,6 +9,7 @@ import org.apache.ibatis.session.Configuration;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -32,6 +33,7 @@ public class MixedSqlCriteria extends SqlCriteria {
         return _interval -> {
             final MixedSqlNode mixedSqlNode = new MixedSqlNode(
                     Arrays.stream(criteriaChain)
+                            .filter(Objects::nonNull)
                             .map(c -> c.toSqlNode().apply(interval))
                             .collect(Collectors.toList())
             );
