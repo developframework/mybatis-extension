@@ -99,6 +99,8 @@ public class SqlCriteriaAssemblerInnerInterceptor implements InnerInterceptor {
         final String basicSql;
         if (exists) {
             basicSql = "SELECT 1 FROM " + entityDefinition.wrapTableName();
+        } else if ("count".equals(metadata.getMapperMethod().getName())) {
+            basicSql = "SELECT COUNT(1) FROM " + entityDefinition.wrapTableName();
         } else {
             basicSql = "SELECT * FROM " + entityDefinition.wrapTableName();
         }
