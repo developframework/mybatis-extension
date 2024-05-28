@@ -30,25 +30,18 @@ public class MixedSqlCriteria extends SqlCriteria {
     @Override
     public Function<Interval, SqlNode> toSqlNode() {
         return _interval -> {
-            TrimSqlNode trimSqlNode = new TrimSqlNode(
-                    configuration,
-                    new MixedSqlNode(
-                            Arrays.stream(criteriaChain)
-                                    .map(c -> c.toSqlNode().apply(interval))
-                                    .collect(Collectors.toList())
-                    ),
-                    "(",
-                    interval.name(),
-                    ")",
-                    null
+            final MixedSqlNode mixedSqlNode = new MixedSqlNode(
+                    Arrays.stream(criteriaChain)
+                            .map(c -> c.toSqlNode().apply(interval))
+                            .collect(Collectors.toList())
             );
             if (_interval == Interval.EMPTY) {
-                return trimSqlNode;
+                return new TrimSqlNode(configuration, mixedSqlNode, null, interval.name(), null, null);
             } else {
                 return new MixedSqlNode(
                         List.of(
                                 new StaticTextSqlNode(_interval.getText()),
-                                trimSqlNode
+                                new TrimSqlNode(configuration, mixedSqlNode, "(", interval.name(), ")", null)
                         )
                 );
             }
