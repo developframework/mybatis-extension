@@ -191,8 +191,61 @@ public class MapperMethodNamingParser implements MapperMethodParser {
      */
     private WhereSqlNode buildWhereSqlNode(Method method, String[] words, EntityDefinition entityDefinition) {
         final List<NamingElement> namingElements = extractNamingElements(method.getName(), words, entityDefinition.getColumnDefinitions());
-        final List<SqlNode> sqlNodes = assembleSqlNodes(namingElements, method);
+        final List<SqlNode> injectSqlNodes = autoInjectSqlNodes(entityDefinition);
+        final List<SqlNode> sqlNodes = new LinkedList<>();
+        if (!injectSqlNodes.isEmpty()) {
+            sqlNodes.add(new TrimSqlNode(
+                    configuration,
+                    new MixedSqlNode(injectSqlNodes),
+                    " AND (",
+                    "AND ",
+                    ")",
+                    null
+            ));
+        }
+        final List<SqlNode> assembleSqlNodes = assembleSqlNodes(namingElements, method);
+        if (assembleSqlNodes.size() == 1) {
+            sqlNodes.add(
+                    new TrimSqlNode(
+                            configuration,
+                            new MixedSqlNode(assembleSqlNodes),
+                            Interval.AND.getText(),
+                            null,
+                            null,
+                            null
+                    )
+            );
+        } else {
+            sqlNodes.add(
+                    new TrimSqlNode(
+                            configuration,
+                            new MixedSqlNode(assembleSqlNodes),
+                            " AND (",
+                            "AND ",
+                            ")",
+                            null
+                    )
+            );
+        }
         return new WhereSqlNode(configuration, new MixedSqlNode(sqlNodes));
+    }
+
+    private List<SqlNode> autoInjectSqlNodes(EntityDefinition entityDefinition) {
+        final List<SqlNode> sqlNodes = new LinkedList<>();
+        if (entityDefinition.hasLogicDelete()) {
+            sqlNodes.add(new StaticTextSqlNode(String.format(" AND %s = 0", entityDefinition.getLogicDeleteColumnDefinition().wrapColumn())));
+        }
+        if (entityDefinition.hasMultipleTenant()) {
+            for (ColumnDefinition cd : entityDefinition.getMultipleTenantColumnDefinitions()) {
+                final StaticTextSqlNode textSqlNode = new StaticTextSqlNode(
+                        String.format(" AND %s = %s", cd.wrapColumn(), cd.placeholder())
+                );
+                sqlNodes.add(
+                        new IfSqlNode(textSqlNode, cd.getProperty() + " neq null")
+                );
+            }
+        }
+        return sqlNodes;
     }
 
     /**

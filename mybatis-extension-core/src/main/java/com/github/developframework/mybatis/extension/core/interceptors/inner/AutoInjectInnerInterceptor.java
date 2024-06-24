@@ -10,13 +10,11 @@ import com.github.developframework.mybatis.extension.core.structs.ColumnDefiniti
 import com.github.developframework.mybatis.extension.core.structs.EntityDefinition;
 import com.github.developframework.mybatis.extension.core.utils.MybatisUtils;
 import org.apache.ibatis.binding.MapperMethod;
-import org.apache.ibatis.mapping.BoundSql;
 import org.apache.ibatis.mapping.MappedStatement;
-import org.apache.ibatis.mapping.ParameterMapping;
 import org.apache.ibatis.mapping.SqlCommandType;
+import org.apache.ibatis.reflection.ParamNameResolver;
 
 import java.lang.reflect.Field;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -28,8 +26,7 @@ public class AutoInjectInnerInterceptor implements InnerInterceptor {
     public Object executorQuery(InnerInvocation innerInvocation, InterceptContext context) throws Throwable {
         if (context.getEntityDefinition().hasAutoInject()) {
             final Object[] args = innerInvocation.getInvocation().getArgs();
-            final MappedStatement mappedStatement = (MappedStatement) args[0];
-            args[1] = queryParameterInject(mappedStatement, context, args[1]);
+            args[1] = queryParameterInject(context, args[1]);
         }
         return innerInvocation.proceed();
     }
@@ -49,7 +46,7 @@ public class AutoInjectInnerInterceptor implements InnerInterceptor {
                 case DELETE: {
                     // 和查询的一样
                     final Object[] args = innerInvocation.getInvocation().getArgs();
-                    args[1] = queryParameterInject(mappedStatement, context, args[1]);
+                    args[1] = queryParameterInject(context, args[1]);
                 }
             }
         }
@@ -82,45 +79,23 @@ public class AutoInjectInnerInterceptor implements InnerInterceptor {
      * 替换parameter值，需要添加租户字段
      */
     @SuppressWarnings("unchecked")
-    private Object queryParameterInject(MappedStatement ms, InterceptContext context, Object parameter) {
+    private Object queryParameterInject(InterceptContext context, Object parameter) {
         final EntityDefinition entityDefinition = context.getEntityDefinition();
+        final MapperMethod.ParamMap<Object> newParameter = new MapperMethod.ParamMap<>();
+        final AutoInjectProviderRegistry autoInjectProviderRegistry = context.getAutoInjectProviderRegistry();
         if (parameter instanceof Map) {
-            final MapperMethod.ParamMap<Object> newParameter = new MapperMethod.ParamMap<>();
-            // 多个参数值 需要往原来的Map里添加租户值
+            // 多个参数值
             newParameter.putAll((Map<String, Object>) parameter);
-            final AutoInjectProviderRegistry autoInjectProviderRegistry = context.getAutoInjectProviderRegistry();
-            for (ColumnDefinition columnDefinition : entityDefinition.getMultipleTenantColumnDefinitions()) {
-                final Object value = getProviderValue(autoInjectProviderRegistry, entityDefinition, columnDefinition, parameter);
-                newParameter.put(columnDefinition.getProperty(), value);
-            }
-            return newParameter;
         } else {
-            // 单个参数值 需要重新弄一个Map来添加租户值
-            final BoundSql boundSql = ms.getBoundSql(parameter);
-            final List<ParameterMapping> parameterMappings = boundSql.getParameterMappings();
-            if (parameterMappings.isEmpty()) {
-                return parameter;
-            } else {
-                final MapperMethod.ParamMap<Object> newParameter = new MapperMethod.ParamMap<>();
-                final AutoInjectProviderRegistry autoInjectProviderRegistry = context.getAutoInjectProviderRegistry();
-                // 正常 boundSql.getParameterMappings() 只会有 (1 + 租户字段数量) 个
-                for (ParameterMapping parameterMapping : boundSql.getParameterMappings()) {
-                    final String property = parameterMapping.getProperty();
-
-                    ColumnDefinition matchColumnDefinition = null;
-                    for (ColumnDefinition columnDefinition : entityDefinition.getMultipleTenantColumnDefinitions()) {
-                        if (columnDefinition.getProperty().equals(property)) {
-                            matchColumnDefinition = columnDefinition;
-                            break;
-                        }
-                    }
-
-                    final Object value = matchColumnDefinition == null ? parameter : getProviderValue(autoInjectProviderRegistry, entityDefinition, matchColumnDefinition, parameter);
-                    newParameter.put(property, value);
-                }
-                return newParameter;
-            }
+            // 单个参数值
+            newParameter.put(ParamNameResolver.GENERIC_NAME_PREFIX + "1", parameter);
         }
+        // 单个参数值
+        for (ColumnDefinition columnDefinition : entityDefinition.getMultipleTenantColumnDefinitions()) {
+            final Object value = getProviderValue(autoInjectProviderRegistry, entityDefinition, columnDefinition, parameter);
+            newParameter.put(columnDefinition.getProperty(), value);
+        }
+        return newParameter;
     }
 
     private Object getProviderValue(AutoInjectProviderRegistry autoInjectProviderRegistry, EntityDefinition entityDefinition, ColumnDefinition columnDefinition, Object parameter) {

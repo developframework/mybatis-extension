@@ -50,7 +50,7 @@ public abstract class AbstractSqlSourceBuilder implements SqlSourceBuilder {
         return Arrays.stream(multipleTenantColumnDefinitions)
                 .map(cd -> {
                     final StaticTextSqlNode textSqlNode = new StaticTextSqlNode(
-                            String.format("AND %s = %s", cd.wrapColumn(), cd.placeholder())
+                            String.format(" AND %s = %s", cd.wrapColumn(), cd.placeholder())
                     );
                     return new IfSqlNode(textSqlNode, cd.getProperty() + " neq null");
                 })

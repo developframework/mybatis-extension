@@ -2,13 +2,12 @@ package test;
 
 import com.github.developframework.mybatis.extension.core.autoinject.AutoInjectProvider;
 import com.github.developframework.mybatis.extension.launcher.DataSourceMetadata;
-import com.github.developframework.mybatis.extension.launcher.MybatisExtensionLauncher;
 import com.github.developframework.mybatis.extension.launcher.MybatisCustomize;
+import com.github.developframework.mybatis.extension.launcher.MybatisExtensionLauncher;
 import org.apache.ibatis.session.Configuration;
 import org.apache.ibatis.session.SqlSession;
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.junit.Test;
-import test.entity.Goods;
 import test.mapper.GoodsMapper;
 import test.typehandler.GoodsSpecArrayTypeHandler;
 
@@ -36,7 +35,7 @@ public class JunitTest {
 
             @Override
             public boolean enableDDL() {
-                return true;
+                return false;
             }
 
             @Override
@@ -48,23 +47,13 @@ public class JunitTest {
         });
         try (SqlSession sqlSession = sqlSessionFactory.openSession(true)) {
             final GoodsMapper mapper = sqlSession.getMapper(GoodsMapper.class);
-//            Goods goods = new Goods();
-//            goods.setGoodsName("雪碧1");
-//            goods.setQuantity(4);
-//            mapper.insert(goods);
-//            System.out.println(goods.getId());
-
-            final List<Goods> list = mapper.select(
-                    (root, builder) -> {
-                        return builder.and(
-                                builder.eq(root.get(Goods.Fields.goodsName), "雪碧1"),
-                                builder.gt(root.get(Goods.Fields.quantity), 1)
-                        );
-                    },
-                    null
-            );
-            System.out.println(list);
-//            mapper.selectByQuantityTrue();
+            mapper.selectByGoodsName("a");
+            mapper.selectByGoodsNameAndQuantity("a", 1);
+            mapper.selectByQuantityTrue();
+            mapper.selectAll();
+            mapper.select(((root, builder) -> {
+                return builder.eq(root.get("goodsName"), "a");
+            }), null);
         }
     }
 }

@@ -65,30 +65,38 @@ public class SqlCriteriaAssemblerInnerInterceptor implements InnerInterceptor {
     private SqlCriteria mergeSqlCriteria(InterceptContext context, Configuration configuration, EntityDefinition entityDefinition, Object parameter, SqlCriteriaBuilder builder, SqlCriteriaAssembler sqlCriteriaAssembler) {
         final SqlRoot root = new SqlRoot(entityDefinition);
         final List<SqlCriteria> sqlCriteriaList = new LinkedList<>();
-        SqlCriteria sqlCriteria = null;
+        final SqlCriteria[] injectSqlCriterias = injectSqlCriterias(context, entityDefinition, parameter, root, builder);
+
+        if (injectSqlCriterias.length > 0) {
+            sqlCriteriaList.add(
+                    new MixedSqlCriteria(configuration, Interval.AND, injectSqlCriterias)
+            );
+        }
         if (sqlCriteriaAssembler != null) {
-            sqlCriteria = sqlCriteriaAssembler.assemble(root, builder);
+            final SqlCriteria sqlCriteria = sqlCriteriaAssembler.assemble(root, builder);
+            if (sqlCriteria != null) {
+                sqlCriteriaList.add(sqlCriteria);
+            }
         }
+        return new MixedSqlCriteria(configuration, Interval.AND, sqlCriteriaList.toArray(SqlCriteria[]::new));
+    }
 
-        if (sqlCriteria != null) {
-            sqlCriteriaList.add(sqlCriteria);
+    private SqlCriteria[] injectSqlCriterias(InterceptContext context, EntityDefinition entityDefinition, Object parameter, SqlRoot root, SqlCriteriaBuilder builder) {
+        final List<SqlCriteria> injectSqlCriteriaList = new LinkedList<>();
+        // 逻辑删除
+        if (entityDefinition.hasLogicDelete()) {
+            final ColumnDefinition cd = entityDefinition.getLogicDeleteColumnDefinition();
+            injectSqlCriteriaList.add(builder.eqFalse(root.get(cd.getProperty())));
         }
-
         // 多租户
         if (entityDefinition.hasMultipleTenant()) {
             for (ColumnDefinition cd : entityDefinition.getMultipleTenantColumnDefinitions()) {
                 final AutoInjectProvider autoInjectProvider = context.getAutoInjectProviderRegistry().getAutoInjectProvider(cd.getAutoInjectProviderClass());
                 final Object provideValue = autoInjectProvider.provide(entityDefinition, cd, parameter);
-                sqlCriteriaList.add(builder.eq(root.get(cd.getProperty()), provideValue));
+                injectSqlCriteriaList.add(builder.eq(root.get(cd.getProperty()), provideValue));
             }
         }
-
-        // 逻辑删除
-        if (entityDefinition.hasLogicDelete()) {
-            final ColumnDefinition cd = entityDefinition.getLogicDeleteColumnDefinition();
-            sqlCriteriaList.add(builder.eqFalse(root.get(cd.getProperty())));
-        }
-        return new MixedSqlCriteria(configuration, Interval.AND, sqlCriteriaList.toArray(SqlCriteria[]::new));
+        return injectSqlCriteriaList.toArray(SqlCriteria[]::new);
     }
 
     /**

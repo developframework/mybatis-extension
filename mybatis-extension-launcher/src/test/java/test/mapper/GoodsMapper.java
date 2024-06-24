@@ -13,6 +13,8 @@ public interface GoodsMapper extends BaseMapper<Goods, Integer> {
 
     List<Goods> selectByGoodsName(String name);
 
+    List<Goods> selectByGoodsNameAndQuantity(String name, int quantity);
+
     List<Goods> selectByQuantityTrue();
 
     void updateGoodsNameQuantity(@Param("goodsName") String goodsName, @Param("quantity") int quantity, @Param("id") int id);
