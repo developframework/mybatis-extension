@@ -10,11 +10,13 @@ import com.github.developframework.mybatis.extension.core.structs.ColumnDefiniti
 import com.github.developframework.mybatis.extension.core.structs.EntityDefinition;
 import com.github.developframework.mybatis.extension.core.utils.MybatisUtils;
 import org.apache.ibatis.binding.MapperMethod;
+import org.apache.ibatis.mapping.BoundSql;
 import org.apache.ibatis.mapping.MappedStatement;
+import org.apache.ibatis.mapping.ParameterMapping;
 import org.apache.ibatis.mapping.SqlCommandType;
-import org.apache.ibatis.reflection.ParamNameResolver;
 
 import java.lang.reflect.Field;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -26,7 +28,8 @@ public class AutoInjectInnerInterceptor implements InnerInterceptor {
     public Object executorQuery(InnerInvocation innerInvocation, InterceptContext context) throws Throwable {
         if (context.getEntityDefinition().hasAutoInject()) {
             final Object[] args = innerInvocation.getInvocation().getArgs();
-            args[1] = queryParameterInject(context, args[1]);
+            MappedStatement mappedStatement = (MappedStatement) args[0];
+            args[1] = queryParameterInject(mappedStatement, context, args[1]);
         }
         return innerInvocation.proceed();
     }
@@ -46,7 +49,7 @@ public class AutoInjectInnerInterceptor implements InnerInterceptor {
                 case DELETE: {
                     // 和查询的一样
                     final Object[] args = innerInvocation.getInvocation().getArgs();
-                    args[1] = queryParameterInject(context, args[1]);
+                    args[1] = queryParameterInject(mappedStatement, context, args[1]);
                 }
             }
         }
@@ -79,8 +82,9 @@ public class AutoInjectInnerInterceptor implements InnerInterceptor {
      * 替换parameter值，需要添加租户字段
      */
     @SuppressWarnings("unchecked")
-    private Object queryParameterInject(InterceptContext context, Object parameter) {
+    private Object queryParameterInject(MappedStatement mappedStatement, InterceptContext context, Object parameter) {
         final EntityDefinition entityDefinition = context.getEntityDefinition();
+        final ColumnDefinition[] multipleTenantColumnDefinitions = entityDefinition.getMultipleTenantColumnDefinitions();
         final MapperMethod.ParamMap<Object> newParameter = new MapperMethod.ParamMap<>();
         final AutoInjectProviderRegistry autoInjectProviderRegistry = context.getAutoInjectProviderRegistry();
         if (parameter instanceof Map) {
@@ -88,7 +92,18 @@ public class AutoInjectInnerInterceptor implements InnerInterceptor {
             newParameter.putAll((Map<String, Object>) parameter);
         } else {
             // 单个参数值
-            newParameter.put(ParamNameResolver.GENERIC_NAME_PREFIX + "1", parameter);
+            final BoundSql boundSql = mappedStatement.getBoundSql(parameter);
+            final List<ParameterMapping> parameterMappings = boundSql.getParameterMappings();
+            // 找出
+            for (ParameterMapping parameterMapping : parameterMappings) {
+                final String property = parameterMapping.getProperty();
+                for (ColumnDefinition multipleTenantColumnDefinition : multipleTenantColumnDefinitions) {
+                    if (!property.equals(multipleTenantColumnDefinition.getProperty())) {
+                        newParameter.put(property, parameter);
+                        break;
+                    }
+                }
+            }
         }
         // 单个参数值
         for (ColumnDefinition columnDefinition : entityDefinition.getMultipleTenantColumnDefinitions()) {

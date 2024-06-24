@@ -47,6 +47,7 @@ public class JunitTest {
         });
         try (SqlSession sqlSession = sqlSessionFactory.openSession(true)) {
             final GoodsMapper mapper = sqlSession.getMapper(GoodsMapper.class);
+            mapper.selectById(1);
             mapper.selectByGoodsName("a");
             mapper.selectByGoodsNameAndQuantity("a", 1);
             mapper.selectByQuantityTrue();
