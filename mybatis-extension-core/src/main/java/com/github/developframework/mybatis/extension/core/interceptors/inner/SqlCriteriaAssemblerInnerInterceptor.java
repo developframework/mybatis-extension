@@ -67,7 +67,9 @@ public class SqlCriteriaAssemblerInnerInterceptor implements InnerInterceptor {
         final List<SqlCriteria> sqlCriteriaList = new LinkedList<>();
         final SqlCriteria[] injectSqlCriterias = injectSqlCriterias(context, entityDefinition, parameter, root, builder);
 
-        if (injectSqlCriterias.length > 0) {
+        if (injectSqlCriterias.length == 1) {
+            sqlCriteriaList.add(injectSqlCriterias[0]);
+        } else if (injectSqlCriterias.length > 1) {
             sqlCriteriaList.add(
                     new MixedSqlCriteria(configuration, Interval.AND, injectSqlCriterias)
             );

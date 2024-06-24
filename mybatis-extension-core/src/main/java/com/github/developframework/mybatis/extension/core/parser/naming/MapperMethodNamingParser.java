@@ -194,14 +194,16 @@ public class MapperMethodNamingParser implements MapperMethodParser {
         final List<SqlNode> injectSqlNodes = autoInjectSqlNodes(entityDefinition);
         final List<SqlNode> sqlNodes = new LinkedList<>();
         if (!injectSqlNodes.isEmpty()) {
-            sqlNodes.add(new TrimSqlNode(
-                    configuration,
-                    new MixedSqlNode(injectSqlNodes),
-                    " AND (",
-                    "AND ",
-                    ")",
-                    null
-            ));
+            sqlNodes.add(
+                    new TrimSqlNode(
+                            configuration,
+                            new MixedSqlNode(injectSqlNodes),
+                            " AND (",
+                            "AND ",
+                            ")",
+                            null
+                    )
+            );
         }
         final List<SqlNode> assembleSqlNodes = assembleSqlNodes(namingElements, method);
         if (assembleSqlNodes.size() == 1) {
