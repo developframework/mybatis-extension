@@ -14,8 +14,10 @@ import org.apache.ibatis.mapping.BoundSql;
 import org.apache.ibatis.mapping.MappedStatement;
 import org.apache.ibatis.mapping.ParameterMapping;
 import org.apache.ibatis.mapping.SqlCommandType;
+import org.apache.ibatis.reflection.ParamNameResolver;
 
 import java.lang.reflect.Field;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -84,22 +86,26 @@ public class AutoInjectInnerInterceptor implements InnerInterceptor {
     private Object queryParameterInject(MappedStatement mappedStatement, InterceptContext context, Object parameter) {
         final EntityDefinition entityDefinition = context.getEntityDefinition();
         final MapperMethod.ParamMap<Object> newParameter = new MapperMethod.ParamMap<>();
-        final AutoInjectProviderRegistry autoInjectProviderRegistry = context.getAutoInjectProviderRegistry();
         if (parameter instanceof Map) {
             // 多个参数值
             newParameter.putAll((Map<String, Object>) parameter);
         } else {
             // 单个参数值
             final BoundSql boundSql = mappedStatement.getBoundSql(parameter);
-            // 正常 boundSql.getParameterMappings() 只会有 (1 + 租户字段数量) 个
-            for (ParameterMapping parameterMapping : boundSql.getParameterMappings()) {
-                final String property = parameterMapping.getProperty();
-                newParameter.put(property, parameter);
+            final List<ParameterMapping> parameterMappings = boundSql.getParameterMappings();
+            if (parameterMappings.isEmpty()) {
+                // 如果原来没有参数映射就追加一个param1
+                newParameter.put(ParamNameResolver.GENERIC_NAME_PREFIX + "1", parameter);
+            } else {
+                // 正常 boundSql.getParameterMappings() 只会有 (1 + 租户字段数量) 个
+                for (ParameterMapping parameterMapping : boundSql.getParameterMappings()) {
+                    newParameter.put(parameterMapping.getProperty(), parameter);
+                }
             }
         }
         // 追加租户字段值
         for (ColumnDefinition columnDefinition : entityDefinition.getMultipleTenantColumnDefinitions()) {
-            final Object value = getProviderValue(autoInjectProviderRegistry, entityDefinition, columnDefinition, parameter);
+            final Object value = getProviderValue(context.getAutoInjectProviderRegistry(), entityDefinition, columnDefinition, parameter);
             newParameter.put(columnDefinition.getProperty(), value);
         }
         return newParameter;
