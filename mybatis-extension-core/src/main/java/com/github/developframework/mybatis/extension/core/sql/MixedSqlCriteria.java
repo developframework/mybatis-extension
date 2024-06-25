@@ -3,12 +3,10 @@ package com.github.developframework.mybatis.extension.core.sql;
 import com.github.developframework.mybatis.extension.core.parser.naming.Interval;
 import org.apache.ibatis.scripting.xmltags.MixedSqlNode;
 import org.apache.ibatis.scripting.xmltags.SqlNode;
-import org.apache.ibatis.scripting.xmltags.StaticTextSqlNode;
 import org.apache.ibatis.scripting.xmltags.TrimSqlNode;
 import org.apache.ibatis.session.Configuration;
 
 import java.util.Arrays;
-import java.util.List;
 import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -37,16 +35,12 @@ public class MixedSqlCriteria extends SqlCriteria {
                             .map(c -> c.toSqlNode().apply(interval))
                             .collect(Collectors.toList())
             );
-            if (_interval == Interval.EMPTY) {
-                return new TrimSqlNode(configuration, mixedSqlNode, null, interval.name(), null, null);
-            } else {
-                return new MixedSqlNode(
-                        List.of(
-                                new StaticTextSqlNode(_interval.getText()),
-                                new TrimSqlNode(configuration, mixedSqlNode, "(", interval.name(), ")", null)
-                        )
-                );
+            String prefix = null, suffix = null;
+            if (_interval != Interval.EMPTY) {
+                prefix = String.format(" %s (", _interval.name());
+                suffix = ")";
             }
+            return new TrimSqlNode(configuration, mixedSqlNode, prefix, interval.name(), suffix, null);
         };
     }
 }

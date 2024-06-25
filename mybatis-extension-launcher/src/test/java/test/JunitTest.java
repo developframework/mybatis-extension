@@ -47,17 +47,17 @@ public class JunitTest {
         });
         try (SqlSession sqlSession = sqlSessionFactory.openSession(true)) {
             final GoodsMapper mapper = sqlSession.getMapper(GoodsMapper.class);
-//            mapper.selectById(1);
-//            mapper.selectByGoodsName("a");
-//            mapper.selectByGoodsNameAndQuantity("a", 1);
-//            mapper.selectByQuantityTrue();
-//            mapper.selectAll();
-            mapper.count(((root, builder) -> {
+            mapper.selectById(1);
+            mapper.selectByGoodsName("a");
+            mapper.selectByGoodsNameAndQuantity("a", 1);
+            mapper.selectByQuantityTrue();
+            mapper.selectAll();
+            mapper.count((root, builder) -> {
                 return builder.and(
                         builder.eq(root.get("domainId"), 1),
                         builder.eq(root.get("goodsName"), "a")
                 );
-            }));
+            });
         }
     }
 }
