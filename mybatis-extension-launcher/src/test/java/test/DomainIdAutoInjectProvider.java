@@ -16,6 +16,6 @@ public class DomainIdAutoInjectProvider implements AutoInjectProvider {
 
     @Override
     public Object provide(EntityDefinition entityDefinition, ColumnDefinition columnDefinition, Object entity) {
-        return 1;
+        return null;
     }
 }

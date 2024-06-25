@@ -1,5 +1,6 @@
 package com.github.developframework.mybatis.extension.core.interceptors.inner;
 
+import com.github.developframework.mybatis.extension.core.BaseMapper;
 import com.github.developframework.mybatis.extension.core.autoinject.AutoInjectProvider;
 import com.github.developframework.mybatis.extension.core.interceptors.InnerInterceptor;
 import com.github.developframework.mybatis.extension.core.interceptors.InnerInvocation;
@@ -17,6 +18,7 @@ import com.github.developframework.mybatis.extension.core.structs.MappedStatemen
 import com.github.developframework.mybatis.extension.core.utils.MybatisUtils;
 import org.apache.ibatis.binding.MapperMethod;
 import org.apache.ibatis.builder.StaticSqlSource;
+import org.apache.ibatis.mapping.BoundSql;
 import org.apache.ibatis.mapping.MappedStatement;
 import org.apache.ibatis.mapping.SqlSource;
 import org.apache.ibatis.scripting.xmltags.*;
@@ -39,27 +41,35 @@ public class SqlCriteriaAssemblerInnerInterceptor implements InnerInterceptor {
         final Object parameter = args[1];
         final MappedStatementMetadata metadata = context.getMappedStatementMetadata();
         if (metadata.isHasSqlCriteriaAssembler()) {
-            final SqlCriteriaAssembler sqlCriteriaAssembler = MybatisUtils.find(parameter, SqlCriteriaAssembler.class);
-
             final MappedStatement mappedStatement = (MappedStatement) args[0];
-            final Configuration configuration = mappedStatement.getConfiguration();
-            final EntityDefinition entityDefinition = context.getEntityDefinition();
-            final SqlCriteriaBuilder builder = new SqlCriteriaBuilder(configuration, entityDefinition);
-            final SqlCriteria finalSqlCriteria = mergeSqlCriteria(context, configuration, entityDefinition, parameter, builder, sqlCriteriaAssembler);
-            final SqlSortPart sqlSortPart = MybatisUtils.find(parameter, SqlSortPart.class);
+            if (isAutomaticSql(mappedStatement, parameter)) {
+                // 自动生成语句
+                final Configuration configuration = mappedStatement.getConfiguration();
+                final EntityDefinition entityDefinition = context.getEntityDefinition();
+                final SqlCriteriaBuilder builder = new SqlCriteriaBuilder(configuration, entityDefinition);
+                final SqlCriteriaAssembler sqlCriteriaAssembler = MybatisUtils.find(parameter, SqlCriteriaAssembler.class);
+                final SqlCriteria finalSqlCriteria = mergeSqlCriteria(context, configuration, entityDefinition, parameter, builder, sqlCriteriaAssembler);
+                final SqlSortPart sqlSortPart = MybatisUtils.find(parameter, SqlSortPart.class);
 
-            // 改写MappedStatement
-            args[0] = buildMappedStatement(metadata, mappedStatement, entityDefinition, finalSqlCriteria, sqlSortPart);
+                // 改写MappedStatement
+                args[0] = buildMappedStatement(metadata, mappedStatement, entityDefinition, finalSqlCriteria, sqlSortPart);
 
-            // 填充参数
-            final MapperMethod.ParamMap<Object> criteriaParamMap = builder.getCriteriaParamMap();
-            if (parameter instanceof Map) {
-                ((Map<String, Object>) parameter).putAll(criteriaParamMap);
-            } else {
-                args[1] = criteriaParamMap;
+                // 填充参数
+                final MapperMethod.ParamMap<Object> criteriaParamMap = builder.getCriteriaParamMap();
+                if (parameter instanceof Map) {
+                    ((Map<String, Object>) parameter).putAll(criteriaParamMap);
+                } else {
+                    args[1] = criteriaParamMap;
+                }
             }
         }
         return innerInvocation.proceed();
+    }
+
+    private boolean isAutomaticSql(MappedStatement mappedStatement, Object parameter) {
+        final SqlSource sqlSource = mappedStatement.getSqlSource();
+        final BoundSql boundSql = sqlSource.getBoundSql(parameter);
+        return BaseMapper.AUTOMATIC_SQL.equals(boundSql.getSql());
     }
 
     private SqlCriteria mergeSqlCriteria(InterceptContext context, Configuration configuration, EntityDefinition entityDefinition, Object parameter, SqlCriteriaBuilder builder, SqlCriteriaAssembler sqlCriteriaAssembler) {
