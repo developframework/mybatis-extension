@@ -28,18 +28,36 @@ public class StringListTypeHandler extends BaseTypeHandler<List<String>> {
     @Override
     public List<String> getNullableResult(ResultSet rs, String columnName) throws SQLException {
         final String str = rs.getString(columnName);
-        return str == null ? null : new ArrayList<>(List.of(str.split(",")));
+        if (str == null) {
+            return null;
+        } else if (str.isEmpty()) {
+            return new ArrayList<>();
+        } else {
+            return new ArrayList<>(List.of(str.split(",")));
+        }
     }
 
     @Override
     public List<String> getNullableResult(ResultSet rs, int columnIndex) throws SQLException {
         final String str = rs.getString(columnIndex);
-        return str == null ? null : new ArrayList<>(List.of(str.split(",")));
+        if (str == null) {
+            return null;
+        } else if (str.isEmpty()) {
+            return new ArrayList<>();
+        } else {
+            return new ArrayList<>(List.of(str.split(",")));
+        }
     }
 
     @Override
     public List<String> getNullableResult(CallableStatement cs, int columnIndex) throws SQLException {
         final String str = cs.getString(columnIndex);
-        return str == null ? null : new ArrayList<>(List.of(str.split(",")));
+        if (str == null) {
+            return null;
+        } else if (str.isEmpty()) {
+            return new ArrayList<>();
+        } else {
+            return new ArrayList<>(List.of(str.split(",")));
+        }
     }
 }

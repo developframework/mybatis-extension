@@ -27,18 +27,36 @@ public class StringArrayTypeHandler extends BaseTypeHandler<String[]> {
     @Override
     public String[] getNullableResult(ResultSet rs, String columnName) throws SQLException {
         final String str = rs.getString(columnName);
-        return str == null ? null : str.split(",");
+        if (str == null) {
+            return null;
+        } else if (str.isEmpty()) {
+            return new String[0];
+        } else {
+            return str.split(",");
+        }
     }
 
     @Override
     public String[] getNullableResult(ResultSet rs, int columnIndex) throws SQLException {
         final String str = rs.getString(columnIndex);
-        return str == null ? null : str.split(",");
+        if (str == null) {
+            return null;
+        } else if (str.isEmpty()) {
+            return new String[0];
+        } else {
+            return str.split(",");
+        }
     }
 
     @Override
     public String[] getNullableResult(CallableStatement cs, int columnIndex) throws SQLException {
         final String str = cs.getString(columnIndex);
-        return str == null ? null : str.split(",");
+        if (str == null) {
+            return null;
+        } else if (str.isEmpty()) {
+            return new String[0];
+        } else {
+            return str.split(",");
+        }
     }
 }

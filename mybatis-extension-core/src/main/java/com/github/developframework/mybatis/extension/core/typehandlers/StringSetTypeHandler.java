@@ -11,6 +11,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -28,18 +29,36 @@ public class StringSetTypeHandler extends BaseTypeHandler<Set<String>> {
     @Override
     public Set<String> getNullableResult(ResultSet rs, String columnName) throws SQLException {
         final String str = rs.getString(columnName);
-        return str == null ? null : new HashSet<>(Set.of(str.split(",")));
+        if (str == null) {
+            return null;
+        } else if (str.isEmpty()) {
+            return new HashSet<>();
+        } else {
+            return new HashSet<>(List.of(str.split(",")));
+        }
     }
 
     @Override
     public Set<String> getNullableResult(ResultSet rs, int columnIndex) throws SQLException {
         final String str = rs.getString(columnIndex);
-        return str == null ? null : new HashSet<>(Set.of(str.split(",")));
+        if (str == null) {
+            return null;
+        } else if (str.isEmpty()) {
+            return new HashSet<>();
+        } else {
+            return new HashSet<>(List.of(str.split(",")));
+        }
     }
 
     @Override
     public Set<String> getNullableResult(CallableStatement cs, int columnIndex) throws SQLException {
         final String str = cs.getString(columnIndex);
-        return str == null ? null : new HashSet<>(Set.of(str.split(",")));
+        if (str == null) {
+            return null;
+        } else if (str.isEmpty()) {
+            return new HashSet<>();
+        } else {
+            return new HashSet<>(List.of(str.split(",")));
+        }
     }
 }
