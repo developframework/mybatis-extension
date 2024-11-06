@@ -30,18 +30,18 @@ public class IntegerSetTypeHandler extends BaseTypeHandler<Set<Integer>> {
     @Override
     public Set<Integer> getNullableResult(ResultSet rs, String columnName) throws SQLException {
         final String str = rs.getString(columnName);
-        return str == null ? null : Stream.of(str).map(Integer::parseInt).collect(Collectors.toSet());
+        return str == null ? null : Stream.of(str.split(",")).map(Integer::parseInt).collect(Collectors.toSet());
     }
 
     @Override
     public Set<Integer> getNullableResult(ResultSet rs, int columnIndex) throws SQLException {
         final String str = rs.getString(columnIndex);
-        return str == null ? null : Stream.of(str).map(Integer::parseInt).collect(Collectors.toSet());
+        return str == null ? null : Stream.of(str.split(",")).map(Integer::parseInt).collect(Collectors.toSet());
     }
 
     @Override
     public Set<Integer> getNullableResult(CallableStatement cs, int columnIndex) throws SQLException {
         final String str = cs.getString(columnIndex);
-        return str == null ? null : Stream.of(str).map(Integer::parseInt).collect(Collectors.toSet());
+        return str == null ? null : Stream.of(str.split(",")).map(Integer::parseInt).collect(Collectors.toSet());
     }
 }

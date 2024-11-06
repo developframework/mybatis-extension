@@ -28,18 +28,17 @@ public class FieldNamingElement implements NamingElement {
      *
      * @param configuration          配置
      * @param interval               前一项的分隔符 AND 或 OR
-     * @param namingMethodParameters 所用参数名
-     * @param i                      所用参数的序号
+     * @param usedParameters 所用参数
      */
-    public SqlNode buildSqlNode(Configuration configuration, Interval interval, Method method, List<NamingMethodParameter> namingMethodParameters, int i) {
+    public SqlNode buildSqlNode(Configuration configuration, Interval interval, Method method, NamingMethodParameter[] usedParameters) {
         final String separator = interval == null ? "" : interval.getText();
         final String column;
         final String param;
-        if (namingMethodParameters.isEmpty()) {
+        if (usedParameters.length == 0) {
             column = column(null);
             param = null;
         } else {
-            final NamingMethodParameter parameter = namingMethodParameters.get(i - 1);
+            final NamingMethodParameter parameter = usedParameters[0];
             column = column(parameter);
             param = parameter.getKey();
         }
@@ -72,7 +71,7 @@ public class FieldNamingElement implements NamingElement {
                 }
             }
             case BETWEEN -> {
-                final String nextParam = namingMethodParameters.get(i).getKey();
+                final String nextParam = usedParameters[1].getKey();
                 final String leftParam = columnDefinition.getColumnMybatisPlaceholder().placeholder(param);
                 final String rightParam = columnDefinition.getColumnMybatisPlaceholder().placeholder(nextParam);
                 // param > BETWEEN #{} AND #{}

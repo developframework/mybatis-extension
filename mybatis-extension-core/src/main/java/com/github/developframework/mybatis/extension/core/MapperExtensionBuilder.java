@@ -190,8 +190,8 @@ public class MapperExtensionBuilder {
         applyConstructorArgs(args, returnType, resultMappings);
         applyResults(results, returnType, resultMappings);
         Discriminator disc = applyDiscriminator(resultMapId, returnType, discriminator);
-        // 来自@Column的参数
-//        applyColumnDefinitions(entityDefinition.getColumnDefinitions().values(), returnType, resultMappings);
+        // 来自@Column的参数 为了处理TypeHandler
+        applyColumnDefinitions(entityDefinition.getColumnDefinitions().values(), returnType, resultMappings);
         // TODO add AutoMappingBehaviour
         assistant.addResultMap(resultMapId, returnType, null, disc, resultMappings, null);
         createDiscriminatorResultMaps(resultMapId, returnType, discriminator);
@@ -260,6 +260,13 @@ public class MapperExtensionBuilder {
      */
     private void applyColumnDefinitions(Collection<ColumnDefinition> columnDefinitions, Class<?> resultType, List<ResultMapping> resultMappings) {
         for (ColumnDefinition columnDefinition : columnDefinitions) {
+            final Class<? extends TypeHandler<?>> typeHandlerClass = columnDefinition.getColumnMybatisPlaceholder().typeHandlerClass;
+            if (typeHandlerClass == null || typeHandlerClass == UnknownTypeHandler.class) {
+                continue;
+            }
+            if (resultMappings.stream().anyMatch(rm -> rm.getProperty().equals(columnDefinition.getProperty()))) {
+                continue;
+            }
             List<ResultFlag> flags = new ArrayList<>();
             if (columnDefinition.isPrimaryKey()) {
                 flags.add(ResultFlag.ID);

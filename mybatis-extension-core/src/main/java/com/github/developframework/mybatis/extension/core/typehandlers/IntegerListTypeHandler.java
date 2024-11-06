@@ -29,18 +29,18 @@ public class IntegerListTypeHandler extends BaseTypeHandler<List<Integer>> {
     @Override
     public List<Integer> getNullableResult(ResultSet rs, String columnName) throws SQLException {
         final String str = rs.getString(columnName);
-        return str == null ? null : Stream.of(str).map(Integer::parseInt).collect(Collectors.toList());
+        return str == null ? null : Stream.of(str.split(",")).map(Integer::parseInt).collect(Collectors.toList());
     }
 
     @Override
     public List<Integer> getNullableResult(ResultSet rs, int columnIndex) throws SQLException {
         final String str = rs.getString(columnIndex);
-        return str == null ? null : Stream.of(str).map(Integer::parseInt).collect(Collectors.toList());
+        return str == null ? null : Stream.of(str.split(",")).map(Integer::parseInt).collect(Collectors.toList());
     }
 
     @Override
     public List<Integer> getNullableResult(CallableStatement cs, int columnIndex) throws SQLException {
         final String str = cs.getString(columnIndex);
-        return str == null ? null : Stream.of(str).map(Integer::parseInt).collect(Collectors.toList());
+        return str == null ? null : Stream.of(str.split(",")).map(Integer::parseInt).collect(Collectors.toList());
     }
 }

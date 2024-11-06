@@ -374,9 +374,30 @@ public class MapperMethodNamingParser implements MapperMethodParser {
     }
 
     private List<SqlNode> assembleSqlNodes(List<NamingElement> namingElements, Method method) {
-        List<SqlNode> sqlNodes = new ArrayList<>();
+        final List<SqlNode> sqlNodes = new ArrayList<>();
         Interval interval = null;
 
+        final List<NamingMethodParameter> namingMethodParameters = getNamingMethodParameters(method);
+        int paramIndex = 0;
+        for (NamingElement namingElement : namingElements) {
+            if (namingElement instanceof IntervalNamingElement intervalNamingElement) {
+                interval = intervalNamingElement.getInterval();
+            } else {
+                final FieldNamingElement fieldNamingElement = (FieldNamingElement) namingElement;
+                final int paramCount = fieldNamingElement.getOperate().getParamCount();
+                final NamingMethodParameter[] usedParameters = new NamingMethodParameter[paramCount];
+                for (int i = 0; i < paramCount; i++) {
+                    usedParameters[i] = namingMethodParameters.get(paramIndex + i);
+                }
+                paramIndex += paramCount;
+                sqlNodes.add(fieldNamingElement.buildSqlNode(configuration, interval, method, usedParameters));
+                interval = null;
+            }
+        }
+        return sqlNodes;
+    }
+
+    private List<NamingMethodParameter> getNamingMethodParameters(Method method) {
         // 参数名列表 为了剔除Pager
         final Class<?>[] parameterTypes = method.getParameterTypes();
         final List<NamingMethodParameter> namingMethodParameters = new ArrayList<>();
@@ -394,19 +415,7 @@ public class MapperMethodNamingParser implements MapperMethodParser {
                 throw new MapperMethodParseException("命名方式和SqlCriteriaAssembler不能同时使用");
             }
         }
-        int i = 1;
-        for (NamingElement namingElement : namingElements) {
-            if (namingElement instanceof IntervalNamingElement) {
-                IntervalNamingElement intervalNamingElement = (IntervalNamingElement) namingElement;
-                interval = intervalNamingElement.getInterval();
-            } else {
-                final FieldNamingElement fieldNamingElement = (FieldNamingElement) namingElement;
-                sqlNodes.add(fieldNamingElement.buildSqlNode(configuration, interval, method, namingMethodParameters, i));
-                i += fieldNamingElement.getOperate().getParamCount();
-                interval = null;
-            }
-        }
-        return sqlNodes;
+        return namingMethodParameters;
     }
 
 }
