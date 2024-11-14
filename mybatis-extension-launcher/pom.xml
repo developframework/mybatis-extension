@@ -4,7 +4,7 @@
     <parent>
         <groupId>com.github.developframework</groupId>
         <artifactId>mybatis-extension</artifactId>
-        <version>1.0</version>
+        <version>1.1-SNAPSHOT</version>
     </parent>
 
     <artifactId>mybatis-extension-launcher</artifactId>
@@ -13,7 +13,7 @@
         <dependency>
             <groupId>com.github.developframework</groupId>
             <artifactId>mybatis-extension-core</artifactId>
-            <version>1.0</version>
+            <version>1.1-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.zaxxer</groupId>
