@@ -190,8 +190,10 @@ public class MapperExtensionBuilder {
         applyConstructorArgs(args, returnType, resultMappings);
         applyResults(results, returnType, resultMappings);
         Discriminator disc = applyDiscriminator(resultMapId, returnType, discriminator);
-        // 来自@Column的参数 为了处理TypeHandler
-        applyColumnDefinitions(entityDefinition.getColumnDefinitions().values(), returnType, resultMappings);
+        if (returnType == entityDefinition.getEntityClass()) {
+            // 来自@Column的参数 为了处理TypeHandler
+            applyColumnDefinitions(entityDefinition.getColumnDefinitions().values(), returnType, resultMappings);
+        }
         // TODO add AutoMappingBehaviour
         assistant.addResultMap(resultMapId, returnType, null, disc, resultMappings, null);
         createDiscriminatorResultMaps(resultMapId, returnType, discriminator);
