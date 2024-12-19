@@ -29,8 +29,10 @@ import java.util.function.Supplier;
 @RequiredArgsConstructor
 public class SqlCriteriaBuilder {
 
+    @Getter
     private final Configuration configuration;
 
+    @Getter
     private final EntityDefinition entityDefinition;
 
     @Getter
@@ -273,7 +275,7 @@ public class SqlCriteriaBuilder {
     }
 
 
-    private String collectParam(Object value) {
+    public String collectParam(Object value) {
         String paramName = ParameterKeys.CRITERIA_PARAM + criteriaParamIndex++;
         criteriaParamMap.put(paramName, value);
         return paramName;
