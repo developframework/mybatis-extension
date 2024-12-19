@@ -1,11 +1,16 @@
 package com.github.developframework.mybatis.extension.core;
 
+import com.github.developframework.mybatis.extension.core.annotation.Dialect;
+import com.github.developframework.mybatis.extension.core.dialect.MybatisExtensionDialect;
 import com.github.developframework.mybatis.extension.core.structs.EntityDefinition;
 import com.github.developframework.mybatis.extension.core.utils.MybatisUtils;
 import lombok.Getter;
 import org.apache.ibatis.mapping.MappedStatement;
 import org.apache.ibatis.session.Configuration;
 import org.apache.ibatis.session.SqlSessionFactory;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * mybatis扩展核心
@@ -19,7 +24,9 @@ public class MybatisExtensionCore {
 
     private final MappedStatementMetadataRegistry mappedStatementMetadataRegistry = new MappedStatementMetadataRegistry();
 
-    public MybatisExtensionCore(SqlSessionFactory... sqlSessionFactories) {
+    public MybatisExtensionCore(MybatisExtensionDialect defaultDialect, SqlSessionFactory... sqlSessionFactories) {
+        Map<Class<? extends MybatisExtensionDialect>, MybatisExtensionDialect> dialectMap = new HashMap<>();
+        dialectMap.put(defaultDialect.getClass(), defaultDialect);
         for (SqlSessionFactory sqlSessionFactory : sqlSessionFactories) {
 
             Configuration configuration = sqlSessionFactory.getConfiguration();
@@ -49,7 +56,10 @@ public class MybatisExtensionCore {
             for (Class<?> mapperClass : configuration.getMapperRegistry().getMappers()) {
                 if (BaseMapper.class.isAssignableFrom(mapperClass)) {
                     Class<?> entityClass = MybatisUtils.getEntityClass(mapperClass);
-                    EntityDefinition entityDefinition = entityDefinitionRegistry.register(entityClass);
+                    final Dialect dialect = entityClass.getAnnotation(Dialect.class);
+
+
+                    EntityDefinition entityDefinition = entityDefinitionRegistry.register(defaultDialect, entityClass);
 
                     MapperExtensionBuilder mapperExtensionBuilder = new MapperExtensionBuilder(
                             configuration,

@@ -79,7 +79,7 @@ public class DatabaseDDLExecutor {
                     .findFirst();
             if (firstMatch.isPresent()) {
                 final ColumnDefinition columnDefinition = firstMatch.get();
-                final ColumnDesc columnDescFromDefinition = ColumnDesc.fromColumnDefinition(columnDefinition);
+                final ColumnDesc columnDescFromDefinition = ColumnDesc.fromColumnDefinition(entityDefinition.getDialect(), columnDefinition);
                 if (!columnDescFromDefinition.equals(columnDesc)) {
                     alterColumnSqls.add("MODIFY COLUMN " + columnDescFromDefinition);
                 }
@@ -90,7 +90,7 @@ public class DatabaseDDLExecutor {
 
         for (ColumnDefinition columnDefinition : columnDefinitions) {
             if (columnDescs.stream().noneMatch(c -> c.getField().equals(columnDefinition.getColumn()))) {
-                final ColumnDesc newColumnDesc = ColumnDesc.fromColumnDefinition(columnDefinition);
+                final ColumnDesc newColumnDesc = ColumnDesc.fromColumnDefinition(entityDefinition.getDialect(), columnDefinition);
                 alterColumnSqls.add("ADD COLUMN " + newColumnDesc);
             }
         }

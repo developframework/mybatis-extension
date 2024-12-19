@@ -2,6 +2,7 @@ package com.github.developframework.mybatis.extension.core.structs;
 
 import com.github.developframework.mybatis.extension.core.annotation.*;
 import com.github.developframework.mybatis.extension.core.autoinject.IdGeneratorAutoInjectProvider;
+import com.github.developframework.mybatis.extension.core.dialect.MybatisExtensionDialect;
 import com.github.developframework.mybatis.extension.core.idgenerator.AutoIncrementIdGenerator;
 import com.github.developframework.mybatis.extension.core.idgenerator.NoIdGenerator;
 import com.github.developframework.mybatis.extension.core.utils.MybatisUtils;
@@ -23,6 +24,8 @@ import java.util.*;
 public class EntityDefinition {
 
     private static final String DEFAULT_ID = "id";
+
+    private final MybatisExtensionDialect dialect;
 
     private final Class<?> entityClass;
 
@@ -52,7 +55,8 @@ public class EntityDefinition {
     // 索引
     private final IndexDefinition[] indexDefinitions;
 
-    public EntityDefinition(Class<?> entityClass) {
+    public EntityDefinition(MybatisExtensionDialect dialect, Class<?> entityClass) {
+        this.dialect = dialect;
         final Table table = entityClass.getAnnotation(Table.class);
         if (table == null) {
             throw new IllegalArgumentException(entityClass.getName() + "未标注@Table");
@@ -76,7 +80,7 @@ public class EntityDefinition {
             if (field.isAnnotationPresent(Transient.class)) {
                 continue;
             }
-            ColumnDefinition columnDefinition = new ColumnDefinition();
+            ColumnDefinition columnDefinition = new ColumnDefinition(dialect);
             columnDefinition.setProperty(field.getName());
             columnDefinition.setPropertyType(field.getGenericType());
 
@@ -233,7 +237,7 @@ public class EntityDefinition {
     }
 
     public String wrapTableName() {
-        return NameUtils.wrap(tableName);
+        return dialect.tableName(tableName);
     }
 
     /**

@@ -1,5 +1,6 @@
 package com.github.developframework.mybatis.extension.core;
 
+import com.github.developframework.mybatis.extension.core.dialect.MybatisExtensionDialect;
 import com.github.developframework.mybatis.extension.core.structs.EntityDefinition;
 
 import java.util.HashMap;
@@ -14,8 +15,8 @@ public class EntityDefinitionRegistry {
 
     private final Map<Class<?>, EntityDefinition> internalMap = new HashMap<>();
 
-    public EntityDefinition register(Class<?> entityClass) {
-        return internalMap.computeIfAbsent(entityClass, EntityDefinition::new);
+    public EntityDefinition register(MybatisExtensionDialect dialect, Class<?> entityClass) {
+        return internalMap.computeIfAbsent(entityClass, key -> new EntityDefinition(dialect, entityClass));
     }
 
     public EntityDefinition get(Class<?> entityClass) {

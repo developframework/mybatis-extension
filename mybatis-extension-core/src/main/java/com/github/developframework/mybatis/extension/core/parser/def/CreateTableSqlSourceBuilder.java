@@ -33,7 +33,7 @@ public class CreateTableSqlSourceBuilder implements SqlSourceBuilder {
                                 entityDefinition.getColumnDefinitions()
                                         .values()
                                         .stream()
-                                        .map(cd -> ColumnDesc.fromColumnDefinition(cd).toString())
+                                        .map(cd -> ColumnDesc.fromColumnDefinition(entityDefinition.getDialect(), cd).toString())
                                         .collect(Collectors.joining(","))
                         )
                         .append(", PRIMARY KEY (")

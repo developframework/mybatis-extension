@@ -1,6 +1,6 @@
 package com.github.developframework.mybatis.extension.core.structs;
 
-import com.github.developframework.mybatis.extension.core.utils.NameUtils;
+import com.github.developframework.mybatis.extension.core.dialect.MybatisExtensionDialect;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
@@ -62,11 +62,11 @@ public class ColumnDesc {
         return sb.toString();
     }
 
-    public static ColumnDesc fromColumnDefinition(ColumnDefinition columnDefinition) {
+    public static ColumnDesc fromColumnDefinition(MybatisExtensionDialect dialect, ColumnDefinition columnDefinition) {
         ColumnBuildMetadata columnBuildMetadata = columnDefinition.getColumnBuildMetadata();
         ColumnDesc columnDesc = new ColumnDesc();
         columnDesc.setField(columnDefinition.getColumn());
-        columnDesc.setType(columnType(columnBuildMetadata, columnDefinition.getPropertyType()));
+        columnDesc.setType(columnType(dialect, columnBuildMetadata, columnDefinition.getPropertyType()));
         columnDesc.setNull(columnBuildMetadata.nullable ? "YES" : "NO");
         columnDesc.setKey(columnDefinition.isPrimaryKey() ? "PRI" : "");
         columnDesc.setDefault(columnBuildMetadata.nullable ? columnBuildMetadata.defaultValue : null);
@@ -75,7 +75,7 @@ public class ColumnDesc {
         return columnDesc;
     }
 
-    private static String columnType(ColumnBuildMetadata columnBuildMetadata, java.lang.reflect.Type propertyType) {
+    private static String columnType(MybatisExtensionDialect dialect, ColumnBuildMetadata columnBuildMetadata, java.lang.reflect.Type propertyType) {
         if (StringUtils.isNotEmpty(columnBuildMetadata.customizeType)) {
             final int i = columnBuildMetadata.customizeType.indexOf("(");
             if (i < 0) {
@@ -138,7 +138,7 @@ public class ColumnDesc {
             type = "timestamp";
         } else if (clazz.isEnum()) {
             type = Arrays.stream(clazz.getEnumConstants())
-                    .map(v -> NameUtils.literal(v.toString()))
+                    .map(v -> dialect.literal(v.toString()))
                     .collect(Collectors.joining(",", "enum(", ")"));
         } else {
             type = "varchar";

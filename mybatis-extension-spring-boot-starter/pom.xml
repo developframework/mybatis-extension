@@ -4,7 +4,7 @@
     <parent>
         <groupId>com.github.developframework</groupId>
         <artifactId>mybatis-extension</artifactId>
-        <version>1.1-SNAPSHOT</version>
+        <version>1.2-SNAPSHOT</version>
     </parent>
 
     <artifactId>mybatis-extension-spring-boot-starter</artifactId>
@@ -17,6 +17,11 @@
         <dependency>
             <groupId>org.mybatis.spring.boot</groupId>
             <artifactId>mybatis-spring-boot-starter</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.github.developframework</groupId>
+            <artifactId>mybatis-extension-dialect-mysql</artifactId>
+            <optional>true</optional>
         </dependency>
     </dependencies>
 </project>

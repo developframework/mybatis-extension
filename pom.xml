@@ -4,12 +4,13 @@
 
     <groupId>com.github.developframework</groupId>
     <artifactId>mybatis-extension</artifactId>
-    <version>1.1-SNAPSHOT</version>
+    <version>1.2-SNAPSHOT</version>
     <packaging>pom</packaging>
     <modules>
         <module>mybatis-extension-core</module>
         <module>mybatis-extension-launcher</module>
         <module>mybatis-extension-spring-boot-starter</module>
+        <module>mybatis-extension-dialect</module>
     </modules>
 
     <name>mybatis-extension Framework</name>
@@ -65,12 +66,22 @@
             <dependency>
                 <groupId>com.github.developframework</groupId>
                 <artifactId>mybatis-extension-core</artifactId>
-                <version>1.1-SNAPSHOT</version>
+                <version>1.2-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>com.github.developframework</groupId>
                 <artifactId>mybatis-extension-launcher</artifactId>
-                <version>1.1-SNAPSHOT</version>
+                <version>1.2-SNAPSHOT</version>
+            </dependency>
+            <dependency>
+                <groupId>com.github.developframework</groupId>
+                <artifactId>mybatis-extension-dialect-mysql</artifactId>
+                <version>1.2-SNAPSHOT</version>
+            </dependency>
+            <dependency>
+                <groupId>com.github.developframework</groupId>
+                <artifactId>mybatis-extension-dialect-dm</artifactId>
+                <version>1.2-SNAPSHOT</version>
             </dependency>
 
             <dependency>

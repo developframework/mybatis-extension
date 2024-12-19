@@ -27,7 +27,7 @@ public class JunitTest {
                 .setUsername("root")
                 .setPassword("pgc%DB112");
 
-        SqlSessionFactory sqlSessionFactory = MybatisExtensionLauncher.open(metadata, new MybatisCustomize() {
+        SqlSessionFactory sqlSessionFactory = MybatisExtensionLauncher.open(metadata, null, new MybatisCustomize() {
 
             @Override
             public void handleConfiguration(Configuration configuration) {

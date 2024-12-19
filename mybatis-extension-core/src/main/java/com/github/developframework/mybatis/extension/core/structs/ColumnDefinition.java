@@ -1,10 +1,11 @@
 package com.github.developframework.mybatis.extension.core.structs;
 
 import com.github.developframework.mybatis.extension.core.autoinject.AutoInjectProvider;
+import com.github.developframework.mybatis.extension.core.dialect.MybatisExtensionDialect;
 import com.github.developframework.mybatis.extension.core.idgenerator.AutoIncrementIdGenerator;
 import com.github.developframework.mybatis.extension.core.idgenerator.IdGenerator;
-import com.github.developframework.mybatis.extension.core.utils.NameUtils;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 
 import java.lang.reflect.Type;
@@ -14,7 +15,10 @@ import java.lang.reflect.Type;
  */
 @Getter
 @Setter
+@RequiredArgsConstructor
 public class ColumnDefinition {
+
+    private final MybatisExtensionDialect dialect;
 
     private String column;
 
@@ -50,6 +54,6 @@ public class ColumnDefinition {
     }
 
     public String wrapColumn() {
-        return NameUtils.wrap(column);
+        return dialect.columnName(column);
     }
 }

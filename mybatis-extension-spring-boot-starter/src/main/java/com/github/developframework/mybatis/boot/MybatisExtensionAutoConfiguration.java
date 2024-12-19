@@ -1,10 +1,14 @@
 package com.github.developframework.mybatis.boot;
 
 import com.github.developframework.mybatis.extension.core.autoinject.*;
+import com.github.developframework.mybatis.extension.core.dialect.MybatisExtensionDialect;
 import com.github.developframework.mybatis.extension.core.idgenerator.AutoIncrementIdGenerator;
 import com.github.developframework.mybatis.extension.core.idgenerator.IdGenerator;
 import com.github.developframework.mybatis.extension.core.idgenerator.IdGeneratorRegistry;
+import com.github.developframework.mybatis.extension.dialect.mysql.MysqlMybatisExtensionDialect;
 import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -41,5 +45,12 @@ public class MybatisExtensionAutoConfiguration {
     @Bean
     public AuditModifyTimeAutoInjectProvider auditModifyTimeAutoInjectProvider() {
         return new AuditModifyTimeAutoInjectProvider();
+    }
+
+    @ConditionalOnClass(name = "com.mysql.cj.jdbc.Driver")
+    @ConditionalOnMissingBean
+    @Bean
+    public MybatisExtensionDialect defaultMybatisExtensionDialect() {
+        return new MysqlMybatisExtensionDialect();
     }
 }

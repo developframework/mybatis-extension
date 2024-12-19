@@ -3,6 +3,7 @@ package com.github.developframework.mybatis.extension.launcher;
 import com.github.developframework.mybatis.extension.core.DatabaseDDLExecutor;
 import com.github.developframework.mybatis.extension.core.MybatisExtensionCore;
 import com.github.developframework.mybatis.extension.core.autoinject.*;
+import com.github.developframework.mybatis.extension.core.dialect.MybatisExtensionDialect;
 import com.github.developframework.mybatis.extension.core.idgenerator.AutoIncrementIdGenerator;
 import com.github.developframework.mybatis.extension.core.idgenerator.IdGenerator;
 import com.github.developframework.mybatis.extension.core.idgenerator.IdGeneratorRegistry;
@@ -31,12 +32,12 @@ import java.util.List;
  */
 public class MybatisExtensionLauncher {
 
-    public static SqlSessionFactory open(DataSourceMetadata dataSourceMetadata, MybatisCustomize customize) {
+    public static SqlSessionFactory open(DataSourceMetadata dataSourceMetadata, MybatisExtensionDialect dialect, MybatisCustomize customize) {
         DataSource dataSource = buildDefaultDataSource(dataSourceMetadata);
-        return open(dataSource, customize);
+        return open(dataSource, dialect, customize);
     }
 
-    public static SqlSessionFactory open(DataSource dataSource, MybatisCustomize customize) {
+    public static SqlSessionFactory open(DataSource dataSource, MybatisExtensionDialect defaultDialect, MybatisCustomize customize) {
         Configuration configuration = buildConfiguration(dataSource);
         // 配置类型转换器
         configureTypeHandlers(configuration);
@@ -59,6 +60,7 @@ public class MybatisExtensionLauncher {
         // 配置SqlSessionFactory
         configureSqlSessionFactory(
                 sqlSessionFactory,
+                defaultDialect,
                 mybatisExtensionInterceptor,
                 autoInjectProviderRegistry,
                 customize != null && customize.enableDDL()
@@ -72,12 +74,13 @@ public class MybatisExtensionLauncher {
      */
     public static void configureSqlSessionFactory(
             SqlSessionFactory sqlSessionFactory,
+            MybatisExtensionDialect defaultDialect,
             MybatisExtensionInterceptor mybatisExtensionInterceptor,
             AutoInjectProviderRegistry autoInjectProviderRegistry,
             boolean enableDDL
     ) {
         // 扩展核心启动
-        MybatisExtensionCore core = new MybatisExtensionCore(sqlSessionFactory);
+        MybatisExtensionCore core = new MybatisExtensionCore(defaultDialect, sqlSessionFactory);
 
         // 给拦截器设置关联组件
         mybatisExtensionInterceptor.setAutoInjectProviderRegistry(autoInjectProviderRegistry);

@@ -5,7 +5,6 @@ import com.github.developframework.mybatis.extension.core.sql.SqlFieldPart;
 import com.github.developframework.mybatis.extension.core.sql.SqlFunction;
 import com.github.developframework.mybatis.extension.core.structs.ColumnDefinition;
 import com.github.developframework.mybatis.extension.core.structs.EntityDefinition;
-import com.github.developframework.mybatis.extension.core.utils.NameUtils;
 import lombok.RequiredArgsConstructor;
 
 import java.util.Arrays;
@@ -33,7 +32,7 @@ public class SqlRoot {
                                 if (columnDefinition != null) {
                                     return columnDefinition.wrapColumn();
                                 } else {
-                                    return NameUtils.literal(property);
+                                    return entityDefinition.getDialect().literal(property);
                                 }
                             } else if (arg instanceof SqlFieldPart sf) {
                                 return sf.toSql();
