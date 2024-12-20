@@ -1,28 +1,26 @@
 package com.github.developframework.mybatis.extension.core.parser.def;
 
+import com.github.developframework.mybatis.extension.core.dialect.SqlSourceBuilder;
 import com.github.developframework.mybatis.extension.core.structs.EntityDefinition;
 import com.github.developframework.mybatis.extension.core.structs.MapperMethodParseWrapper;
 import org.apache.ibatis.mapping.SqlCommandType;
 import org.apache.ibatis.mapping.SqlSource;
-import org.apache.ibatis.scripting.defaults.RawSqlSource;
 import org.apache.ibatis.session.Configuration;
 
 import java.lang.reflect.Method;
 
 /**
- * @author qiushui on 2023-09-06.
+ * @author qiushui on 2023-09-14.
  */
-public class ShowIndexSqlSourceBuilder implements SqlSourceBuilder {
-
+public class SelectAllSqlParseHandler extends AbstractSqlParseHandler {
     @Override
-    public String methedName() {
-        return "showIndex";
+    public String methodName() {
+        return "selectAll";
     }
 
     @Override
-    public MapperMethodParseWrapper build(Configuration configuration, EntityDefinition entityDefinition, Method method) {
-        final String sql = "SHOW INDEX FROM " + entityDefinition.wrapTableName() + "WHERE Key_name != 'PRIMARY'";
-        SqlSource sqlSource = new RawSqlSource(configuration, sql, null);
+    public MapperMethodParseWrapper handle(Configuration configuration, EntityDefinition entityDefinition, SqlSourceBuilder sqlSourceBuilder, Method method) {
+        final SqlSource sqlSource = sqlSourceBuilder.buildSelectAllSql(configuration, entityDefinition, method);
         return new MapperMethodParseWrapper(SqlCommandType.SELECT, sqlSource);
     }
 }

@@ -1,5 +1,6 @@
 package com.github.developframework.mybatis.extension.core.parser.def;
 
+import com.github.developframework.mybatis.extension.core.dialect.SqlSourceBuilder;
 import com.github.developframework.mybatis.extension.core.parser.MapperMethodParser;
 import com.github.developframework.mybatis.extension.core.structs.EntityDefinition;
 import com.github.developframework.mybatis.extension.core.structs.MapperMethodParseWrapper;
@@ -16,35 +17,36 @@ public class BaseMapperDefaultParser implements MapperMethodParser {
 
     private final Configuration configuration;
 
-    private static final SqlSourceBuilder[] DEFAULT_BUILDER = {
-            new InsertSqlSourceBuilder(),
-            new InsertAllSqlSourceBuilder(),
-            new ReplaceSqlSourceBuilder(),
-            new ReplaceAllSqlSourceBuilder(),
-            new UpdateSqlSourceBuilder(),
-            new DeleteByIdSqlSourceBuilder(),
+    private static final MapperMethodParseHandler[] DEFAULT_HANDLERS = {
+            new InsertSqlParseHandler(),
+            new InsertAllSqlParseHandler(),
+            new ReplaceSqlParseHandler(),
+            new ReplaceAllSqlParseHandler(),
+            new UpdateSqlParseHandler(),
+            new DeleteByIdSqlParseHandler(),
 
-            new ExistsByIdSqlSourceBuilder(),
-            new SelectByIdSqlSourceBuilder(),
-            new SelectByIdLockSqlSourceBuilder(),
-            new SelectByIdArraySqlSourceBuilder(),
-            new SelectByIdArrayLockSqlSourceBuilder(),
-            new SelectByIdsSqlSourceBuilder(),
-            new SelectByIdsLockSqlSourceBuilder(),
-            new SelectAllSqlSourceBuilder(),
+            new ExistsByIdSqlParseHandler(),
+            new SelectByIdSqlParseHandler(),
+            new SelectByIdLockSqlParseHandler(),
+            new SelectByIdArraySqlParseHandler(),
+            new SelectByIdArrayLockSqlParseHandler(),
+            new SelectByIdsSqlParseHandler(),
+            new SelectByIdsLockSqlParseHandler(),
+            new SelectAllSqlParseHandler(),
 
-            new CreateTableSqlSourceBuilder(),
-            new AlterSqlSourceBuilder(),
-            new ShowIndexSqlSourceBuilder(),
-            new DescSqlSourceBuilder(),
+            new CreateTableSqlParseHandler(),
+            new AlterSqlParseHandler(),
+            new ShowIndexSqlParseHandler(),
+            new DescSqlParseHandler(),
     };
 
     @Override
     public MapperMethodParseWrapper parse(EntityDefinition entityDefinition, Method method) {
         String methodName = method.getName();
-        for (SqlSourceBuilder sqlSourceBuilder : DEFAULT_BUILDER) {
-            if (sqlSourceBuilder.methedName().equals(methodName)) {
-                return sqlSourceBuilder.build(configuration, entityDefinition, method);
+        final SqlSourceBuilder sqlSourceBuilder = entityDefinition.getDialect().sqlFragmentBuilder();
+        for (MapperMethodParseHandler handler : DEFAULT_HANDLERS) {
+            if (handler.methodName().equals(methodName)) {
+                return handler.handle(configuration, entityDefinition, sqlSourceBuilder, method);
             }
         }
         return null;

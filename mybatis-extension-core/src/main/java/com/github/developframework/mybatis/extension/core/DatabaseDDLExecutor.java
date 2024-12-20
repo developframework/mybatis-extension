@@ -1,5 +1,6 @@
 package com.github.developframework.mybatis.extension.core;
 
+import com.github.developframework.mybatis.extension.core.dialect.ColumnDescription;
 import com.github.developframework.mybatis.extension.core.structs.*;
 import com.github.developframework.mybatis.extension.core.utils.MybatisUtils;
 import com.github.developframework.mybatis.extension.core.utils.NameUtils;
@@ -69,17 +70,17 @@ public class DatabaseDDLExecutor {
 
     private void collectColumns(BaseMapper<?, ?> baseMapper, EntityDefinition entityDefinition, List<String> alterColumnSqls) {
         final Collection<ColumnDefinition> columnDefinitions = entityDefinition.getColumnDefinitions().values();
-        final List<ColumnDesc> columnDescs = baseMapper.desc();
+        final List<ColumnDescription> columnDescs = baseMapper.desc();
         // 多余无用的属性
         final List<String> unusedColumns = new LinkedList<>();
-        for (ColumnDesc columnDesc : columnDescs) {
+        for (ColumnDescription columnDesc : columnDescs) {
             Optional<ColumnDefinition> firstMatch = columnDefinitions
                     .stream()
                     .filter(cd -> cd.getColumn().equals(columnDesc.getField()))
                     .findFirst();
             if (firstMatch.isPresent()) {
                 final ColumnDefinition columnDefinition = firstMatch.get();
-                final ColumnDesc columnDescFromDefinition = ColumnDesc.fromColumnDefinition(entityDefinition.getDialect(), columnDefinition);
+                final ColumnDescription columnDescFromDefinition = entityDefinition.getDialect().buildColumnDescriptionByColumnDefinition(columnDefinition);
                 if (!columnDescFromDefinition.equals(columnDesc)) {
                     alterColumnSqls.add("MODIFY COLUMN " + columnDescFromDefinition);
                 }
@@ -90,8 +91,8 @@ public class DatabaseDDLExecutor {
 
         for (ColumnDefinition columnDefinition : columnDefinitions) {
             if (columnDescs.stream().noneMatch(c -> c.getField().equals(columnDefinition.getColumn()))) {
-                final ColumnDesc newColumnDesc = ColumnDesc.fromColumnDefinition(entityDefinition.getDialect(), columnDefinition);
-                alterColumnSqls.add("ADD COLUMN " + newColumnDesc);
+                final ColumnDescription newColumnDescription = entityDefinition.getDialect().buildColumnDescriptionByColumnDefinition(columnDefinition);
+                alterColumnSqls.add("ADD COLUMN " + newColumnDescription);
             }
         }
 

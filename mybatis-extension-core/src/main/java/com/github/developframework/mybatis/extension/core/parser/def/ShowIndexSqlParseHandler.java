@@ -1,10 +1,10 @@
 package com.github.developframework.mybatis.extension.core.parser.def;
 
+import com.github.developframework.mybatis.extension.core.dialect.SqlSourceBuilder;
 import com.github.developframework.mybatis.extension.core.structs.EntityDefinition;
 import com.github.developframework.mybatis.extension.core.structs.MapperMethodParseWrapper;
 import org.apache.ibatis.mapping.SqlCommandType;
 import org.apache.ibatis.mapping.SqlSource;
-import org.apache.ibatis.scripting.defaults.RawSqlSource;
 import org.apache.ibatis.session.Configuration;
 
 import java.lang.reflect.Method;
@@ -12,17 +12,16 @@ import java.lang.reflect.Method;
 /**
  * @author qiushui on 2023-09-06.
  */
-public class DescSqlSourceBuilder implements SqlSourceBuilder {
+public class ShowIndexSqlParseHandler implements MapperMethodParseHandler {
 
     @Override
-    public String methedName() {
-        return "desc";
+    public String methodName() {
+        return "showIndex";
     }
 
     @Override
-    public MapperMethodParseWrapper build(Configuration configuration, EntityDefinition entityDefinition, Method method) {
-        final String sql = "DESC " + entityDefinition.wrapTableName();
-        SqlSource sqlSource = new RawSqlSource(configuration, sql, null);
+    public MapperMethodParseWrapper handle(Configuration configuration, EntityDefinition entityDefinition, SqlSourceBuilder sqlSourceBuilder, Method method) {
+        final SqlSource sqlSource = sqlSourceBuilder.buildShowIndexSql(configuration, entityDefinition, method);
         return new MapperMethodParseWrapper(SqlCommandType.SELECT, sqlSource);
     }
 }

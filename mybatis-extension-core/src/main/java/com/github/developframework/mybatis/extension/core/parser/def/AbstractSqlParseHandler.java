@@ -18,7 +18,7 @@ import java.util.stream.Stream;
 /**
  * @author qiushui on 2023-09-06.
  */
-public abstract class AbstractSqlSourceBuilder implements SqlSourceBuilder {
+public abstract class AbstractSqlParseHandler implements MapperMethodParseHandler {
 
     protected final String buildWhereByIdSql(EntityDefinition entityDefinition) {
         final ColumnDefinition[] idColumnDefinitions = entityDefinition.getPrimaryKeyColumnDefinitions();

@@ -1,5 +1,7 @@
 package com.github.developframework.mybatis.extension.core;
 
+import com.github.developframework.mybatis.extension.core.dialect.ColumnDescription;
+import com.github.developframework.mybatis.extension.core.parser.def.*;
 import com.github.developframework.mybatis.extension.core.sql.SqlSortPart;
 import com.github.developframework.mybatis.extension.core.sql.builder.SqlCriteriaAssembler;
 import com.github.developframework.mybatis.extension.core.structs.*;
@@ -20,92 +22,92 @@ public interface BaseMapper<T, ID extends Serializable> {
     String AUTOMATIC_SQL = "";
 
     /**
-     * @see com.github.developframework.mybatis.extension.core.parser.def.InsertSqlSourceBuilder
+     * @see InsertSqlParseHandler
      */
     int insert(T entity);
 
     /**
-     * @see com.github.developframework.mybatis.extension.core.parser.def.InsertAllSqlSourceBuilder
+     * @see InsertAllSqlParseHandler
      */
     int insertAll(Collection<T> entity);
 
     /**
-     * @see com.github.developframework.mybatis.extension.core.parser.def.ReplaceSqlSourceBuilder
+     * @see ReplaceSqlParseHandler
      */
     int replace(T entity);
 
     /**
-     * @see com.github.developframework.mybatis.extension.core.parser.def.ReplaceAllSqlSourceBuilder
+     * @see ReplaceAllSqlParseHandler
      */
     int replaceAll(Collection<T> entity);
 
     /**
-     * @see com.github.developframework.mybatis.extension.core.parser.def.UpdateSqlSourceBuilder
+     * @see UpdateSqlParseHandler
      */
     int update(T entity);
 
     /**
-     * @see com.github.developframework.mybatis.extension.core.parser.def.DeleteByIdSqlSourceBuilder
+     * @see DeleteByIdSqlParseHandler
      */
     int deleteById(ID id);
 
     /**
-     * @see com.github.developframework.mybatis.extension.core.parser.def.ExistsByIdSqlSourceBuilder
+     * @see ExistsByIdSqlParseHandler
      */
     boolean existsById(ID id);
 
     /**
-     * @see com.github.developframework.mybatis.extension.core.parser.def.SelectByIdSqlSourceBuilder
+     * @see SelectByIdSqlParseHandler
      */
     Optional<T> selectById(ID id);
 
     /**
-     * @see com.github.developframework.mybatis.extension.core.parser.def.SelectByIdLockSqlSourceBuilder
+     * @see SelectByIdLockSqlParseHandler
      */
     Optional<T> selectByIdLock(@Param("id") ID id, @Param(ParameterKeys.LOCK) LockType lockType);
 
     /**
-     * @see com.github.developframework.mybatis.extension.core.parser.def.SelectByIdArraySqlSourceBuilder
+     * @see SelectByIdArraySqlParseHandler
      */
     List<T> selectByIdArray(ID[] ids);
 
     /**
-     * @see com.github.developframework.mybatis.extension.core.parser.def.SelectByIdArrayLockSqlSourceBuilder
+     * @see SelectByIdArrayLockSqlParseHandler
      */
     List<T> selectByIdArrayLock(@Param("ids") ID[] ids, @Param(ParameterKeys.LOCK) LockType lockType);
 
     /**
-     * @see com.github.developframework.mybatis.extension.core.parser.def.SelectByIdsSqlSourceBuilder
+     * @see SelectByIdsSqlParseHandler
      */
     List<T> selectByIds(Collection<ID> ids);
 
     /**
-     * @see com.github.developframework.mybatis.extension.core.parser.def.SelectByIdsLockSqlSourceBuilder
+     * @see SelectByIdsLockSqlParseHandler
      */
     List<T> selectByIdsLock(@Param("ids") Collection<ID> ids, @Param(ParameterKeys.LOCK) LockType lockType);
 
     /**
-     * @see com.github.developframework.mybatis.extension.core.parser.def.SelectAllSqlSourceBuilder
+     * @see SelectAllSqlParseHandler
      */
     List<T> selectAll();
 
     /**
-     * @see com.github.developframework.mybatis.extension.core.parser.def.DescSqlSourceBuilder
+     * @see DescSqlParseHandler
      */
-    List<ColumnDesc> desc();
+    List<ColumnDescription> desc();
 
     /**
-     * @see com.github.developframework.mybatis.extension.core.parser.def.CreateTableSqlSourceBuilder
+     * @see CreateTableSqlParseHandler
      */
     void createTable();
 
     /**
-     * @see com.github.developframework.mybatis.extension.core.parser.def.ShowIndexSqlSourceBuilder
+     * @see ShowIndexSqlParseHandler
      */
     List<IndexDesc> showIndex();
 
     /**
-     * @see com.github.developframework.mybatis.extension.core.parser.def.AlterSqlSourceBuilder
+     * @see AlterSqlParseHandler
      */
     void alter(List<String> alterColumns);
 
