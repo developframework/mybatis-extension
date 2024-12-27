@@ -11,6 +11,7 @@ import com.github.developframework.mybatis.extension.core.sql.SqlCriteria;
 import com.github.developframework.mybatis.extension.core.sql.SqlSortPart;
 import com.github.developframework.mybatis.extension.core.sql.builder.SqlCriteriaAssembler;
 import com.github.developframework.mybatis.extension.core.sql.builder.SqlCriteriaBuilder;
+import com.github.developframework.mybatis.extension.core.sql.builder.SqlCriteriaBuilderContext;
 import com.github.developframework.mybatis.extension.core.sql.builder.SqlRoot;
 import com.github.developframework.mybatis.extension.core.structs.ColumnDefinition;
 import com.github.developframework.mybatis.extension.core.structs.EntityDefinition;
@@ -48,14 +49,15 @@ public class SqlCriteriaAssemblerInnerInterceptor implements InnerInterceptor {
                 final EntityDefinition entityDefinition = context.getEntityDefinition();
                 final SqlCriteriaBuilder builder = new SqlCriteriaBuilder(configuration, entityDefinition);
                 final SqlCriteriaAssembler sqlCriteriaAssembler = MybatisUtils.find(parameter, SqlCriteriaAssembler.class);
-                final SqlCriteria finalSqlCriteria = mergeSqlCriteria(context, configuration, entityDefinition, parameter, builder, sqlCriteriaAssembler);
+                final SqlCriteria finalSqlCriteria = mergeSqlCriteria(context, entityDefinition, parameter, builder, sqlCriteriaAssembler);
                 final SqlSortPart sqlSortPart = MybatisUtils.find(parameter, SqlSortPart.class);
 
+                final SqlCriteriaBuilderContext builderContext = new SqlCriteriaBuilderContext();
                 // 改写MappedStatement
-                args[0] = buildMappedStatement(metadata, mappedStatement, entityDefinition, finalSqlCriteria, sqlSortPart);
+                args[0] = buildMappedStatement(metadata, mappedStatement, entityDefinition, finalSqlCriteria, sqlSortPart, builderContext);
 
                 // 填充参数
-                final MapperMethod.ParamMap<Object> criteriaParamMap = builder.getCriteriaParamMap();
+                final MapperMethod.ParamMap<Object> criteriaParamMap = builderContext.getCriteriaParamMap();
                 if (parameter instanceof Map) {
                     ((Map<String, Object>) parameter).putAll(criteriaParamMap);
                 } else {
@@ -72,7 +74,7 @@ public class SqlCriteriaAssemblerInnerInterceptor implements InnerInterceptor {
         return BaseMapper.AUTOMATIC_SQL.equals(boundSql.getSql());
     }
 
-    private SqlCriteria mergeSqlCriteria(InterceptContext context, Configuration configuration, EntityDefinition entityDefinition, Object parameter, SqlCriteriaBuilder builder, SqlCriteriaAssembler sqlCriteriaAssembler) {
+    private SqlCriteria mergeSqlCriteria(InterceptContext context, EntityDefinition entityDefinition, Object parameter, SqlCriteriaBuilder builder, SqlCriteriaAssembler sqlCriteriaAssembler) {
         final SqlRoot root = new SqlRoot(entityDefinition);
         final List<SqlCriteria> sqlCriteriaList = new LinkedList<>();
         final SqlCriteria[] injectSqlCriterias = injectSqlCriterias(context, entityDefinition, parameter, root, builder);
@@ -81,7 +83,7 @@ public class SqlCriteriaAssemblerInnerInterceptor implements InnerInterceptor {
             sqlCriteriaList.add(injectSqlCriterias[0]);
         } else if (injectSqlCriterias.length > 1) {
             sqlCriteriaList.add(
-                    new MixedSqlCriteria(configuration, Interval.AND, injectSqlCriterias)
+                    new MixedSqlCriteria(Interval.AND, injectSqlCriterias)
             );
         }
         if (sqlCriteriaAssembler != null) {
@@ -90,7 +92,7 @@ public class SqlCriteriaAssemblerInnerInterceptor implements InnerInterceptor {
                 sqlCriteriaList.add(sqlCriteria);
             }
         }
-        return new MixedSqlCriteria(configuration, Interval.AND, sqlCriteriaList.toArray(SqlCriteria[]::new));
+        return new MixedSqlCriteria(Interval.AND, sqlCriteriaList.toArray(SqlCriteria[]::new));
     }
 
     private SqlCriteria[] injectSqlCriterias(InterceptContext context, EntityDefinition entityDefinition, Object parameter, SqlRoot root, SqlCriteriaBuilder builder) {
@@ -114,7 +116,14 @@ public class SqlCriteriaAssemblerInnerInterceptor implements InnerInterceptor {
     /**
      * 构建一个新的MappedStatement
      */
-    private MappedStatement buildMappedStatement(MappedStatementMetadata metadata, MappedStatement mappedStatement, EntityDefinition entityDefinition, SqlCriteria sqlCriteria, SqlSortPart sqlSortPart) {
+    private MappedStatement buildMappedStatement(
+            MappedStatementMetadata metadata,
+            MappedStatement mappedStatement,
+            EntityDefinition entityDefinition,
+            SqlCriteria sqlCriteria,
+            SqlSortPart sqlSortPart,
+            SqlCriteriaBuilderContext builderContext
+    ) {
         final boolean exists = "exists".equals(metadata.getMapperMethod().getName());
         final String basicSql;
         if (exists) {
@@ -125,7 +134,7 @@ public class SqlCriteriaAssemblerInnerInterceptor implements InnerInterceptor {
             basicSql = "SELECT * FROM " + entityDefinition.wrapTableName();
         }
 
-        final SqlNode sqlNode = sqlCriteria == null ? null : sqlCriteria.toSqlNode().apply(Interval.EMPTY);
+        final SqlNode sqlNode = sqlCriteria == null ? null : sqlCriteria.toSqlNode(mappedStatement.getConfiguration(), builderContext).apply(Interval.EMPTY);
         final String orderBySql = sqlSortPart == null ? "" : (" ORDER BY " + sqlSortPart.toSql(entityDefinition));
         final Configuration configuration = mappedStatement.getConfiguration();
         final SqlSource sqlSource;

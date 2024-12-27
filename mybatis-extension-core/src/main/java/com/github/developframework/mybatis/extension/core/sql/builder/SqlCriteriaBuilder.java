@@ -2,22 +2,16 @@ package com.github.developframework.mybatis.extension.core.sql.builder;
 
 import com.github.developframework.mybatis.extension.core.parser.naming.Interval;
 import com.github.developframework.mybatis.extension.core.parser.naming.Operate;
-import com.github.developframework.mybatis.extension.core.sql.FieldSqlCriteria;
 import com.github.developframework.mybatis.extension.core.sql.MixedSqlCriteria;
 import com.github.developframework.mybatis.extension.core.sql.SqlCriteria;
 import com.github.developframework.mybatis.extension.core.sql.SqlFieldPart;
+import com.github.developframework.mybatis.extension.core.sql.criteria.*;
 import com.github.developframework.mybatis.extension.core.structs.EntityDefinition;
-import com.github.developframework.mybatis.extension.core.structs.ParameterKeys;
-import com.github.developframework.mybatis.extension.core.utils.NameUtils;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
-import org.apache.ibatis.binding.MapperMethod;
-import org.apache.ibatis.scripting.xmltags.*;
+import org.apache.ibatis.scripting.xmltags.SqlNode;
 import org.apache.ibatis.session.Configuration;
 
-import java.lang.reflect.Field;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.function.Function;
@@ -26,174 +20,114 @@ import java.util.function.Supplier;
 /**
  * @author qiushui on 2023-09-15.
  */
+@Getter
 @RequiredArgsConstructor
 public class SqlCriteriaBuilder {
 
-    @Getter
     private final Configuration configuration;
 
-    @Getter
     private final EntityDefinition entityDefinition;
-
-    @Getter
-    private final MapperMethod.ParamMap<Object> criteriaParamMap = new MapperMethod.ParamMap<>();
-
-    private int criteriaParamIndex;
-
-    @SneakyThrows(NoSuchFieldException.class)
-    private Field getField(String valueProperty) {
-        return entityDefinition.getEntityClass().getDeclaredField(valueProperty);
-    }
 
     public SqlCriteria and(SqlCriteria... criteriaChain) {
         if (criteriaChain.length == 1) {
             return criteriaChain[0];
         } else {
-            return new MixedSqlCriteria(configuration, Interval.AND, criteriaChain);
+            return new MixedSqlCriteria(Interval.AND, criteriaChain);
         }
+    }
+
+    public SqlCriteria and(List<SqlCriteria> criteriaChain) {
+        return and(criteriaChain.toArray(SqlCriteria[]::new));
     }
 
     public SqlCriteria or(SqlCriteria... criteriaChain) {
         if (criteriaChain.length == 1) {
             return criteriaChain[0];
         } else {
-            return new MixedSqlCriteria(configuration, Interval.OR, criteriaChain);
+            return new MixedSqlCriteria(Interval.OR, criteriaChain);
         }
     }
 
+    public SqlCriteria or(List<SqlCriteria> criteriaChain) {
+        return or(criteriaChain.toArray(SqlCriteria[]::new));
+    }
+
     public SqlCriteria eq(SqlFieldPart fieldPart, Object value) {
-        return simpleCommon(fieldPart, value, Operate.EQ);
+        return new SimpleSqlCriteria(fieldPart, value, Operate.EQ);
     }
 
     public SqlCriteria ne(SqlFieldPart fieldPart, Object value) {
-        return simpleCommon(fieldPart, value, Operate.NE);
+        return new SimpleSqlCriteria(fieldPart, value, Operate.NE);
     }
 
     public SqlCriteria gt(SqlFieldPart fieldPart, Object value) {
-        return simpleCommon(fieldPart, value, Operate.GT);
+        return new SimpleSqlCriteria(fieldPart, value, Operate.GT);
     }
 
     public SqlCriteria gte(SqlFieldPart fieldPart, Object value) {
-        return simpleCommon(fieldPart, value, Operate.GTE);
+        return new SimpleSqlCriteria(fieldPart, value, Operate.GTE);
     }
 
     public SqlCriteria lt(SqlFieldPart fieldPart, Object value) {
-        return simpleCommon(fieldPart, value, Operate.LT);
+        return new SimpleSqlCriteria(fieldPart, value, Operate.LT);
     }
 
     public SqlCriteria lte(SqlFieldPart fieldPart, Object value) {
-        return simpleCommon(fieldPart, value, Operate.LTE);
-    }
-
-    public SqlCriteria isNull(SqlFieldPart fieldPart) {
-        return simpleCommonLiteral(fieldPart, Operate.ISNULL);
-    }
-
-    public SqlCriteria isNotNull(SqlFieldPart fieldPart) {
-        return simpleCommonLiteral(fieldPart, Operate.NOTNULL);
-    }
-
-    public SqlCriteria eqTrue(SqlFieldPart fieldPart) {
-        return simpleCommonLiteral(fieldPart, Operate.EQ_TRUE);
-    }
-
-    public SqlCriteria eqFalse(SqlFieldPart fieldPart) {
-        return simpleCommonLiteral(fieldPart, Operate.EQ_FALSE);
+        return new SimpleSqlCriteria(fieldPart, value, Operate.LTE);
     }
 
     public SqlCriteria like(SqlFieldPart fieldPart, String value) {
-        return simpleCommon(fieldPart, value, Operate.LIKE);
+        return new SimpleSqlCriteria(fieldPart, value, Operate.LIKE);
     }
 
     public SqlCriteria likeHead(SqlFieldPart fieldPart, String value) {
-        return simpleCommon(fieldPart, value, Operate.LIKE_HEAD);
+        return new SimpleSqlCriteria(fieldPart, value, Operate.LIKE_HEAD);
     }
 
     public SqlCriteria likeTail(SqlFieldPart fieldPart, String value) {
-        return simpleCommon(fieldPart, value, Operate.LIKE_TAIL);
+        return new SimpleSqlCriteria(fieldPart, value, Operate.LIKE_TAIL);
+    }
+
+    public SqlCriteria isNull(SqlFieldPart fieldPart) {
+        return new LiteralSqlCriteria(fieldPart, Operate.ISNULL);
+    }
+
+    public SqlCriteria isNotNull(SqlFieldPart fieldPart) {
+        return new LiteralSqlCriteria(fieldPart, Operate.NOTNULL);
+    }
+
+    public SqlCriteria eqTrue(SqlFieldPart fieldPart) {
+        return new LiteralSqlCriteria(fieldPart, Operate.EQ_TRUE);
+    }
+
+    public SqlCriteria eqFalse(SqlFieldPart fieldPart) {
+        return new LiteralSqlCriteria(fieldPart, Operate.EQ_FALSE);
     }
 
     public SqlCriteria in(SqlFieldPart fieldPart, Collection<?> collection) {
-        return commonWithIn(fieldPart, collection, Operate.IN);
+        return new WithInSqlCriteria(fieldPart, collection, Operate.IN);
     }
 
-    public <T> SqlCriteria in(SqlFieldPart fieldPart, T... array) {
-        return commonWithIn(fieldPart, array, Operate.IN);
+    @SafeVarargs
+    public final <T> SqlCriteria in(SqlFieldPart fieldPart, T... array) {
+        return new WithInSqlCriteria(fieldPart, array, Operate.IN);
     }
 
     public SqlCriteria notIn(SqlFieldPart fieldPart, Collection<?> collection) {
-        return commonWithIn(fieldPart, collection, Operate.NOT_IN);
+        return new WithInSqlCriteria(fieldPart, collection, Operate.NOT_IN);
     }
 
-    public <T> SqlCriteria notIn(SqlFieldPart fieldPart, T... array) {
-        return commonWithIn(fieldPart, array, Operate.NOT_IN);
-    }
-
-    public SqlCriteria terminate() {
-        return new FieldSqlCriteria(configuration) {
-
-            @Override
-            public Function<Interval, SqlNode> toSqlNode() {
-                return interval -> new StaticTextSqlNode(interval.getText() + "0 = 1");
-            }
-        };
+    @SafeVarargs
+    public final <T> SqlCriteria notIn(SqlFieldPart fieldPart, T... array) {
+        return new WithInSqlCriteria(fieldPart, array, Operate.NOT_IN);
     }
 
     public SqlCriteria between(SqlFieldPart fieldPart, Object value1, Object value2) {
-        return new FieldSqlCriteria(configuration) {
-            @Override
-            public Function<Interval, SqlNode> toSqlNode() {
-                return interval -> {
-                    final String paramName1, finalValue1, paramName2, finalValue2;
-                    if (value1 == null) {
-                        paramName1 = null;
-                        finalValue1 = null;
-                    } else if (value1 instanceof SqlFieldPart sfp) {
-                        paramName1 = null;
-                        finalValue1 = sfp.toSql();
-                    } else {
-                        paramName1 = collectParam(value1);
-                        finalValue1 = NameUtils.placeholder(paramName1);
-                    }
-                    if (value2 == null) {
-                        paramName2 = null;
-                        finalValue2 = null;
-                    } else if (value2 instanceof SqlFieldPart sfp) {
-                        paramName2 = null;
-                        finalValue2 = sfp.toSql();
-                    } else {
-                        paramName2 = collectParam(value2);
-                        finalValue2 = NameUtils.placeholder(paramName2);
-                    }
-                    List<SqlNode> ifSqlNodes = new ArrayList<>(3);
-                    ifSqlNodes.add(
-                            new IfSqlNode(
-                                    new StaticTextSqlNode(
-                                            interval.getText() + Operate.BETWEEN.getFormat().formatted(fieldPart.toSql(), finalValue1, finalValue2)
-                                    ),
-                                    paramName1 + " neq null and " + paramName2 + " neq null"
-                            )
-                    );
-                    ifSqlNodes.add(
-                            new IfSqlNode(
-                                    new StaticTextSqlNode(
-                                            interval.getText() + Operate.GTE.getFormat().formatted(fieldPart.toSql(), finalValue1)
-                                    ),
-                                    paramName1 + " neq null"
-                            )
-                    );
-                    ifSqlNodes.add(
-                            new IfSqlNode(
-                                    new StaticTextSqlNode(
-                                            interval.getText() + Operate.LTE.getFormat().formatted(fieldPart.toSql(), finalValue2)
-                                    ),
-                                    paramName2 + " neq null"
-                            )
-                    );
-                    return new ChooseSqlNode(ifSqlNodes, null);
-                };
-            }
-        };
+        return new BetweenSqlCriteria(fieldPart, value1, value2);
+    }
+
+    public SqlCriteria terminate() {
+        return new TerminateSqlCriteria();
     }
 
     public SqlCriteria complex(Supplier<SqlCriteria> supplier) {
@@ -201,83 +135,6 @@ public class SqlCriteriaBuilder {
     }
 
     public SqlCriteria complex(Function<Interval, SqlNode> function) {
-        return new FieldSqlCriteria(configuration) {
-
-            @Override
-            public Function<Interval, SqlNode> toSqlNode() {
-                return function;
-            }
-        };
-    }
-
-    private SqlCriteria simpleCommon(SqlFieldPart fieldPart, Object value, Operate operate) {
-        return new FieldSqlCriteria(configuration) {
-            @Override
-            public Function<Interval, SqlNode> toSqlNode() {
-                return interval -> {
-                    final String paramName, finalValue;
-                    if (value instanceof SqlFieldPart sfp) {
-                        paramName = null;
-                        finalValue = sfp.toSql();
-                    } else {
-                        paramName = collectParam(value);
-                        finalValue = NameUtils.placeholder(paramName);
-                    }
-                    StaticTextSqlNode staticTextSqlNode = new StaticTextSqlNode(
-                            interval.getText() + operate.getFormat().formatted(fieldPart.toSql(), finalValue)
-                    );
-                    return buildIfSqlNode(paramName, fieldPart, staticTextSqlNode);
-                };
-            }
-        };
-    }
-
-    private SqlCriteria simpleCommonLiteral(SqlFieldPart fieldPart, Operate operate) {
-        return new FieldSqlCriteria(configuration) {
-            @Override
-            public Function<Interval, SqlNode> toSqlNode() {
-                return interval -> new StaticTextSqlNode(
-                        interval.getText() + operate.getFormat().formatted(fieldPart.toSql())
-                );
-            }
-        };
-    }
-
-    private SqlCriteria commonWithIn(SqlFieldPart fieldPart, Object value, Operate operate) {
-        return new FieldSqlCriteria(configuration) {
-            @Override
-            public Function<Interval, SqlNode> toSqlNode() {
-                return interval -> {
-                    final String paramName, itemName;
-                    paramName = collectParam(value);
-                    itemName = paramName + "_item";
-                    ForEachSqlNode forEachSqlNode = new ForEachSqlNode(
-                            configuration,
-                            new StaticTextSqlNode(NameUtils.placeholder(itemName)),
-                            paramName,
-                            true,
-                            null,
-                            itemName,
-                            "(",
-                            ")",
-                            ","
-                    );
-                    MixedSqlNode mixedSqlNode = new MixedSqlNode(
-                            List.of(
-                                    new StaticTextSqlNode(interval.getText() + operate.getFormat().formatted(fieldPart.toSql())),
-                                    forEachSqlNode
-                            )
-                    );
-                    return buildIfSqlNode(paramName, fieldPart, mixedSqlNode);
-                };
-            }
-        };
-    }
-
-
-    public String collectParam(Object value) {
-        String paramName = ParameterKeys.CRITERIA_PARAM + criteriaParamIndex++;
-        criteriaParamMap.put(paramName, value);
-        return paramName;
+        return new ComplexSqlCriteria(function);
     }
 }

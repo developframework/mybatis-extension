@@ -1,6 +1,7 @@
 package com.github.developframework.mybatis.extension.core.sql;
 
 import com.github.developframework.mybatis.extension.core.parser.naming.Interval;
+import com.github.developframework.mybatis.extension.core.sql.builder.SqlCriteriaBuilderContext;
 import lombok.RequiredArgsConstructor;
 import org.apache.ibatis.scripting.xmltags.SqlNode;
 import org.apache.ibatis.session.Configuration;
@@ -13,7 +14,5 @@ import java.util.function.Function;
 @RequiredArgsConstructor
 public abstract class SqlCriteria implements SqlPart {
 
-    protected final Configuration configuration;
-
-    public abstract Function<Interval, SqlNode> toSqlNode();
+    public abstract Function<Interval, SqlNode> toSqlNode(Configuration configuration, SqlCriteriaBuilderContext context);
 }

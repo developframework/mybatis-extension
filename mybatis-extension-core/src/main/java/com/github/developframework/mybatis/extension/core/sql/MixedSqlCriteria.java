@@ -1,6 +1,7 @@
 package com.github.developframework.mybatis.extension.core.sql;
 
 import com.github.developframework.mybatis.extension.core.parser.naming.Interval;
+import com.github.developframework.mybatis.extension.core.sql.builder.SqlCriteriaBuilderContext;
 import org.apache.ibatis.scripting.xmltags.MixedSqlNode;
 import org.apache.ibatis.scripting.xmltags.SqlNode;
 import org.apache.ibatis.scripting.xmltags.TrimSqlNode;
@@ -16,23 +17,22 @@ import java.util.stream.Collectors;
  */
 public class MixedSqlCriteria extends SqlCriteria {
 
-    private final Interval interval;
+    private final Interval mixedInterval;
 
     private final SqlCriteria[] criteriaChain;
 
-    public MixedSqlCriteria(Configuration configuration, Interval interval, SqlCriteria[] criteriaChain) {
-        super(configuration);
-        this.interval = interval;
+    public MixedSqlCriteria(Interval mixedInterval, SqlCriteria[] criteriaChain) {
+        this.mixedInterval = mixedInterval;
         this.criteriaChain = criteriaChain;
     }
 
     @Override
-    public Function<Interval, SqlNode> toSqlNode() {
+    public Function<Interval, SqlNode> toSqlNode(Configuration configuration, SqlCriteriaBuilderContext context) {
         return _interval -> {
             final MixedSqlNode mixedSqlNode = new MixedSqlNode(
                     Arrays.stream(criteriaChain)
                             .filter(Objects::nonNull)
-                            .map(c -> c.toSqlNode().apply(interval))
+                            .map(c -> c.toSqlNode(configuration, context).apply(mixedInterval))
                             .collect(Collectors.toList())
             );
             String prefix = null, suffix = null;
@@ -40,7 +40,7 @@ public class MixedSqlCriteria extends SqlCriteria {
                 prefix = String.format(" %s (", _interval.name());
                 suffix = ")";
             }
-            return new TrimSqlNode(configuration, mixedSqlNode, prefix, interval.name(), suffix, null);
+            return new TrimSqlNode(configuration, mixedSqlNode, prefix, mixedInterval.name(), suffix, null);
         };
     }
 }
