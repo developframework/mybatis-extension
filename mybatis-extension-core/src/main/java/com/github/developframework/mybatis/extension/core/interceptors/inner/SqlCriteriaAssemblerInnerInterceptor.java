@@ -134,7 +134,7 @@ public class SqlCriteriaAssemblerInnerInterceptor implements InnerInterceptor {
             basicSql = "SELECT * FROM " + entityDefinition.wrapTableName();
         }
 
-        final SqlNode sqlNode = sqlCriteria == null ? null : sqlCriteria.toSqlNode(mappedStatement.getConfiguration(), builderContext).apply(Interval.EMPTY);
+        final SqlNode sqlNode = sqlCriteria == null ? null : sqlCriteria.toSqlNode(mappedStatement.getConfiguration(), builderContext, Interval.EMPTY);
         final String orderBySql = sqlSortPart == null ? "" : (" ORDER BY " + sqlSortPart.toSql(entityDefinition));
         final Configuration configuration = mappedStatement.getConfiguration();
         final SqlSource sqlSource;

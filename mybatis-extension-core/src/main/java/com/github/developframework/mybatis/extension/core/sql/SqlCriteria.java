@@ -6,13 +6,11 @@ import lombok.RequiredArgsConstructor;
 import org.apache.ibatis.scripting.xmltags.SqlNode;
 import org.apache.ibatis.session.Configuration;
 
-import java.util.function.Function;
-
 /**
  * @author qiushui on 2023-09-15.
  */
 @RequiredArgsConstructor
 public abstract class SqlCriteria implements SqlPart {
 
-    public abstract Function<Interval, SqlNode> toSqlNode(Configuration configuration, SqlCriteriaBuilderContext context);
+    public abstract SqlNode toSqlNode(Configuration configuration, SqlCriteriaBuilderContext context, Interval interval);
 }

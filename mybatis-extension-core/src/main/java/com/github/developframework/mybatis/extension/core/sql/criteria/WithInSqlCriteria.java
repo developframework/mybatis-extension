@@ -14,7 +14,6 @@ import org.apache.ibatis.scripting.xmltags.StaticTextSqlNode;
 import org.apache.ibatis.session.Configuration;
 
 import java.util.List;
-import java.util.function.Function;
 
 /**
  * @author qiushui on 2024-12-27.
@@ -29,29 +28,27 @@ public class WithInSqlCriteria extends FieldSqlCriteria {
     private final Operate operate;
 
     @Override
-    public Function<Interval, SqlNode> toSqlNode(Configuration configuration, SqlCriteriaBuilderContext context) {
-        return interval -> {
-            final String paramName, itemName;
-            paramName = context.collectParam(value);
-            itemName = paramName + "_item";
-            ForEachSqlNode forEachSqlNode = new ForEachSqlNode(
-                    configuration,
-                    new StaticTextSqlNode(NameUtils.placeholder(itemName)),
-                    paramName,
-                    true,
-                    null,
-                    itemName,
-                    "(",
-                    ")",
-                    ","
-            );
-            MixedSqlNode mixedSqlNode = new MixedSqlNode(
-                    List.of(
-                            new StaticTextSqlNode(interval.getText() + operate.getFormat().formatted(fieldPart.toSql())),
-                            forEachSqlNode
-                    )
-            );
-            return buildIfSqlNode(paramName, fieldPart, mixedSqlNode);
-        };
+    public SqlNode toSqlNode(Configuration configuration, SqlCriteriaBuilderContext context, Interval interval) {
+        final String paramName, itemName;
+        paramName = context.collectParam(value);
+        itemName = paramName + "_item";
+        ForEachSqlNode forEachSqlNode = new ForEachSqlNode(
+                configuration,
+                new StaticTextSqlNode(NameUtils.placeholder(itemName)),
+                paramName,
+                true,
+                null,
+                itemName,
+                "(",
+                ")",
+                ","
+        );
+        MixedSqlNode mixedSqlNode = new MixedSqlNode(
+                List.of(
+                        new StaticTextSqlNode(interval.getText() + operate.getFormat().formatted(fieldPart.toSql())),
+                        forEachSqlNode
+                )
+        );
+        return buildIfSqlNode(paramName, fieldPart, mixedSqlNode);
     }
 }

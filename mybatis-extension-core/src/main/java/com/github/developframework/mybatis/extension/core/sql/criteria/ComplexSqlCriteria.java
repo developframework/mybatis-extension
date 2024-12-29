@@ -18,7 +18,7 @@ public class ComplexSqlCriteria extends FieldSqlCriteria {
     private final Function<Interval, SqlNode> function;
 
     @Override
-    public Function<Interval, SqlNode> toSqlNode(Configuration configuration, SqlCriteriaBuilderContext context) {
-        return function;
+    public SqlNode toSqlNode(Configuration configuration, SqlCriteriaBuilderContext context, Interval interval) {
+        return function.apply(interval);
     }
 }

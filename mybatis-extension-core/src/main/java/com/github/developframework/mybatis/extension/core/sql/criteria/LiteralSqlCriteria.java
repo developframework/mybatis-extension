@@ -10,8 +10,6 @@ import org.apache.ibatis.scripting.xmltags.SqlNode;
 import org.apache.ibatis.scripting.xmltags.StaticTextSqlNode;
 import org.apache.ibatis.session.Configuration;
 
-import java.util.function.Function;
-
 /**
  * @author qiushui on 2024-12-27.
  */
@@ -23,8 +21,8 @@ public class LiteralSqlCriteria extends FieldSqlCriteria {
     private final Operate operate;
 
     @Override
-    public Function<Interval, SqlNode> toSqlNode(Configuration configuration, SqlCriteriaBuilderContext context) {
-        return interval -> new StaticTextSqlNode(
+    public SqlNode toSqlNode(Configuration configuration, SqlCriteriaBuilderContext context, Interval interval) {
+        return new StaticTextSqlNode(
                 interval.getText() + operate.getFormat().formatted(fieldPart.toSql())
         );
     }

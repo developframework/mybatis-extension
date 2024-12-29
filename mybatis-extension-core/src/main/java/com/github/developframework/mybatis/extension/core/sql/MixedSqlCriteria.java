@@ -9,7 +9,6 @@ import org.apache.ibatis.session.Configuration;
 
 import java.util.Arrays;
 import java.util.Objects;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -27,20 +26,18 @@ public class MixedSqlCriteria extends SqlCriteria {
     }
 
     @Override
-    public Function<Interval, SqlNode> toSqlNode(Configuration configuration, SqlCriteriaBuilderContext context) {
-        return _interval -> {
-            final MixedSqlNode mixedSqlNode = new MixedSqlNode(
-                    Arrays.stream(criteriaChain)
-                            .filter(Objects::nonNull)
-                            .map(c -> c.toSqlNode(configuration, context).apply(mixedInterval))
-                            .collect(Collectors.toList())
-            );
-            String prefix = null, suffix = null;
-            if (_interval != Interval.EMPTY) {
-                prefix = String.format(" %s (", _interval.name());
-                suffix = ")";
-            }
-            return new TrimSqlNode(configuration, mixedSqlNode, prefix, mixedInterval.name(), suffix, null);
-        };
+    public SqlNode toSqlNode(Configuration configuration, SqlCriteriaBuilderContext context, Interval interval) {
+        final MixedSqlNode mixedSqlNode = new MixedSqlNode(
+                Arrays.stream(criteriaChain)
+                        .filter(Objects::nonNull)
+                        .map(c -> c.toSqlNode(configuration, context, mixedInterval))
+                        .collect(Collectors.toList())
+        );
+        String prefix = null, suffix = null;
+        if (interval != Interval.EMPTY) {
+            prefix = String.format(" %s (", interval.name());
+            suffix = ")";
+        }
+        return new TrimSqlNode(configuration, mixedSqlNode, prefix, mixedInterval.name(), suffix, null);
     }
 }
