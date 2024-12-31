@@ -2,6 +2,7 @@ package com.github.developframework.mybatis.extension.core.sql.builder;
 
 import com.github.developframework.mybatis.extension.core.parser.naming.Interval;
 import com.github.developframework.mybatis.extension.core.parser.naming.Operate;
+import com.github.developframework.mybatis.extension.core.sql.FieldSqlCriteria;
 import com.github.developframework.mybatis.extension.core.sql.MixedSqlCriteria;
 import com.github.developframework.mybatis.extension.core.sql.SqlCriteria;
 import com.github.developframework.mybatis.extension.core.sql.SqlFieldPart;
@@ -9,13 +10,10 @@ import com.github.developframework.mybatis.extension.core.sql.criteria.*;
 import com.github.developframework.mybatis.extension.core.structs.EntityDefinition;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import org.apache.ibatis.scripting.xmltags.SqlNode;
 import org.apache.ibatis.session.Configuration;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.function.Function;
-import java.util.function.Supplier;
 
 /**
  * @author qiushui on 2023-09-15.
@@ -130,11 +128,7 @@ public class SqlCriteriaBuilder {
         return new TerminateSqlCriteria();
     }
 
-    public SqlCriteria complex(Supplier<SqlCriteria> supplier) {
-        return supplier.get();
-    }
-
-    public SqlCriteria complex(Function<Interval, SqlNode> function) {
-        return new ComplexSqlCriteria(function);
+    public SqlCriteria complex(FieldSqlCriteria criteria) {
+        return criteria;
     }
 }
