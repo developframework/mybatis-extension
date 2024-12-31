@@ -21,7 +21,7 @@ public class ShowIndexSqlSourceBuilder implements SqlSourceBuilder {
 
     @Override
     public MapperMethodParseWrapper build(Configuration configuration, EntityDefinition entityDefinition, Method method) {
-        final String sql = "SHOW INDEX FROM " + entityDefinition.wrapTableName() + "WHERE Key_name != 'PRIMARY'";
+        final String sql = "SHOW INDEX FROM " + entityDefinition.wrapTableName() + " WHERE Key_name != 'PRIMARY'";
         SqlSource sqlSource = new RawSqlSource(configuration, sql, null);
         return new MapperMethodParseWrapper(SqlCommandType.SELECT, sqlSource);
     }
