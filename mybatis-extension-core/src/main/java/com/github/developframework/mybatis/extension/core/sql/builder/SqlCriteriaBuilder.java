@@ -50,28 +50,28 @@ public class SqlCriteriaBuilder {
         return or(criteriaChain.toArray(SqlCriteria[]::new));
     }
 
-    public SqlCriteria eq(SqlFieldPart fieldPart, Object value) {
-        return new SimpleSqlCriteria(fieldPart, value, Operate.EQ);
+    public SqlCriteria eq(Object value1, Object value2) {
+        return new SimpleSqlCriteria(value1, value2, Operate.EQ);
     }
 
-    public SqlCriteria ne(SqlFieldPart fieldPart, Object value) {
-        return new SimpleSqlCriteria(fieldPart, value, Operate.NE);
+    public SqlCriteria ne(Object value1, Object value2) {
+        return new SimpleSqlCriteria(value1, value2, Operate.NE);
     }
 
-    public SqlCriteria gt(SqlFieldPart fieldPart, Object value) {
-        return new SimpleSqlCriteria(fieldPart, value, Operate.GT);
+    public SqlCriteria gt(Object value1, Object value2) {
+        return new SimpleSqlCriteria(value1, value2, Operate.GT);
     }
 
-    public SqlCriteria gte(SqlFieldPart fieldPart, Object value) {
-        return new SimpleSqlCriteria(fieldPart, value, Operate.GTE);
+    public SqlCriteria gte(Object value1, Object value2) {
+        return new SimpleSqlCriteria(value1, value2, Operate.GTE);
     }
 
-    public SqlCriteria lt(SqlFieldPart fieldPart, Object value) {
-        return new SimpleSqlCriteria(fieldPart, value, Operate.LT);
+    public SqlCriteria lt(Object value1, Object value2) {
+        return new SimpleSqlCriteria(value1, value2, Operate.LT);
     }
 
-    public SqlCriteria lte(SqlFieldPart fieldPart, Object value) {
-        return new SimpleSqlCriteria(fieldPart, value, Operate.LTE);
+    public SqlCriteria lte(Object value1, Object value2) {
+        return new SimpleSqlCriteria(value1, value2, Operate.LTE);
     }
 
     public SqlCriteria like(SqlFieldPart fieldPart, String value) {
@@ -87,19 +87,19 @@ public class SqlCriteriaBuilder {
     }
 
     public SqlCriteria isNull(SqlFieldPart fieldPart) {
-        return new LiteralSqlCriteria(fieldPart, Operate.ISNULL);
+        return new CompareSqlCriteria(fieldPart, Operate.ISNULL);
     }
 
     public SqlCriteria isNotNull(SqlFieldPart fieldPart) {
-        return new LiteralSqlCriteria(fieldPart, Operate.NOTNULL);
+        return new CompareSqlCriteria(fieldPart, Operate.NOTNULL);
     }
 
     public SqlCriteria eqTrue(SqlFieldPart fieldPart) {
-        return new LiteralSqlCriteria(fieldPart, Operate.EQ_TRUE);
+        return new CompareSqlCriteria(fieldPart, Operate.EQ_TRUE);
     }
 
     public SqlCriteria eqFalse(SqlFieldPart fieldPart) {
-        return new LiteralSqlCriteria(fieldPart, Operate.EQ_FALSE);
+        return new CompareSqlCriteria(fieldPart, Operate.EQ_FALSE);
     }
 
     public SqlCriteria in(SqlFieldPart fieldPart, Collection<?> collection) {
@@ -120,8 +120,8 @@ public class SqlCriteriaBuilder {
         return new WithInSqlCriteria(fieldPart, array, Operate.NOT_IN);
     }
 
-    public SqlCriteria between(SqlFieldPart fieldPart, Object value1, Object value2) {
-        return new BetweenSqlCriteria(fieldPart, value1, value2);
+    public SqlCriteria between(Object target, Object value1, Object value2) {
+        return new BetweenSqlCriteria(target, value1, value2);
     }
 
     public SqlCriteria terminate() {

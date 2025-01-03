@@ -14,7 +14,7 @@ import org.apache.ibatis.session.Configuration;
  * @author qiushui on 2024-12-27.
  */
 @RequiredArgsConstructor
-public class LiteralSqlCriteria extends FieldSqlCriteria {
+public class CompareSqlCriteria extends FieldSqlCriteria {
 
     private final SqlFieldPart fieldPart;
 

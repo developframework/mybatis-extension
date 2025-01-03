@@ -29,13 +29,14 @@ public class WithInSqlCriteria extends FieldSqlCriteria {
 
     @Override
     public SqlNode toSqlNode(Configuration configuration, SqlCriteriaBuilderContext context, Interval interval) {
-        final String paramName, itemName;
-        paramName = context.collectParam(value);
-        itemName = paramName + "_item";
-        ForEachSqlNode forEachSqlNode = new ForEachSqlNode(
+        final CriteriaParameter fieldPartParameter = context.newParameter(fieldPart);
+        final CriteriaParameter valueParameter = context.newParameter(value);
+
+        final String itemName = valueParameter.paramName() + "_item";
+        final ForEachSqlNode forEachSqlNode = new ForEachSqlNode(
                 configuration,
                 new StaticTextSqlNode(NameUtils.placeholder(itemName)),
-                paramName,
+                valueParameter.paramName(),
                 true,
                 null,
                 itemName,
@@ -43,12 +44,12 @@ public class WithInSqlCriteria extends FieldSqlCriteria {
                 ")",
                 ","
         );
-        MixedSqlNode mixedSqlNode = new MixedSqlNode(
+        final MixedSqlNode mixedSqlNode = new MixedSqlNode(
                 List.of(
-                        new StaticTextSqlNode(interval.getText() + operate.getFormat().formatted(fieldPart.toSql())),
+                        new StaticTextSqlNode(interval.getText() + operate.getFormat().formatted(fieldPartParameter.finalValue())),
                         forEachSqlNode
                 )
         );
-        return buildIfSqlNode(paramName, fieldPart, mixedSqlNode);
+        return buildSqlNodeCheckNull(mixedSqlNode, fieldPartParameter, valueParameter);
     }
 }

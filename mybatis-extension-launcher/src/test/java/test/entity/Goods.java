@@ -9,6 +9,7 @@ import lombok.experimental.FieldNameConstants;
 import test.DomainIdAutoInjectProvider;
 import test.typehandler.GoodsSpecArrayTypeHandler;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 /**
@@ -39,6 +40,10 @@ public class Goods extends AuditPO {
 
     @LogicDelete
     private boolean delete;
+
+    private LocalDate startDate;
+
+    private LocalDate endDate;
 
     public Goods(String goodsName, Integer quantity) {
         this.goodsName = goodsName;

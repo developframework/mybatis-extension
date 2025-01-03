@@ -6,6 +6,7 @@ import com.github.developframework.mybatis.extension.core.sql.builder.SqlCriteri
 import com.github.developframework.mybatis.extension.core.sql.builder.SqlRoot;
 import lombok.Getter;
 import lombok.Setter;
+import test.entity.Goods;
 
 /**
  * @author qiushui on 2024-06-25.
@@ -18,6 +19,6 @@ public class GoodsSearch implements SqlCriteriaAssembler {
 
     @Override
     public SqlCriteria assemble(SqlRoot root, SqlCriteriaBuilder builder) {
-        return null;
+        return builder.between(null, root.get(Goods.Fields.startDate), root.get(Goods.Fields.endDate));
     }
 }

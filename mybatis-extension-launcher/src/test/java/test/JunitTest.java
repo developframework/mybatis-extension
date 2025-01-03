@@ -37,7 +37,7 @@ public class JunitTest {
 
             @Override
             public boolean enableDDL() {
-                return false;
+                return true;
             }
 
             @Override
@@ -49,22 +49,10 @@ public class JunitTest {
         });
         try (SqlSession sqlSession = sqlSessionFactory.openSession(true)) {
             final GoodsMapper mapper = sqlSession.getMapper(GoodsMapper.class);
-//            mapper.selectById(1);
-//            mapper.selectByGoodsName("a");
-//            mapper.selectByGoodsNameAndQuantity("a", 1);
-//            mapper.selectByQuantityTrue();
-//            mapper.selectAll();
-//            mapper.count((root, builder) -> {
-//                return builder.and(
-//                        builder.eq(root.get("domainId"), 1),
-//                        builder.eq(root.get("goodsName"), "a")
-//                );
-//            });
             Pager pager = new Pager();
             GoodsSearch search = new GoodsSearch();
-            search.setGoodsName("a");
+//            search.setGoodsName("a");
             mapper.select(search, null);
-            mapper.selectCustomPager(pager, search);
         }
     }
 }
