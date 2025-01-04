@@ -19,6 +19,6 @@ public class GoodsSearch implements SqlCriteriaAssembler {
 
     @Override
     public SqlCriteria assemble(SqlRoot root, SqlCriteriaBuilder builder) {
-        return builder.eq(root.get(Goods.Fields.goodsName), "");
+        return builder.eq(root.function("DATE", root.get(Goods.Fields.createTime)), null);
     }
 }
