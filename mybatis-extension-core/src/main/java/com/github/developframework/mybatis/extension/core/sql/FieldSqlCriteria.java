@@ -15,7 +15,7 @@ public abstract class FieldSqlCriteria extends SqlCriteria {
     protected SqlNode buildSqlNodeCheckNull(SqlNode contentSqlNode, CriteriaParameter... parameters) {
         String test = "";
         for (CriteriaParameter parameter : parameters) {
-            if (parameter.type() == CriteriaParameter.CriteriaParameterType.LITERAL) {
+            if (parameter.type() == CriteriaParameter.CriteriaParameterType.FIELD) {
                 if (!test.isEmpty()) {
                     test += " and ";
                 }

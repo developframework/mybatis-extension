@@ -19,6 +19,6 @@ public class GoodsSearch implements SqlCriteriaAssembler {
 
     @Override
     public SqlCriteria assemble(SqlRoot root, SqlCriteriaBuilder builder) {
-        return builder.between(null, root.get(Goods.Fields.startDate), root.get(Goods.Fields.endDate));
+        return builder.eq(root.get(Goods.Fields.goodsName), "");
     }
 }
