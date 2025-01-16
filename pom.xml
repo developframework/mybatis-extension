@@ -4,7 +4,7 @@
 
     <groupId>com.github.developframework</groupId>
     <artifactId>mybatis-extension</artifactId>
-    <version>1.1</version>
+    <version>1.2-SNAPSHOT</version>
     <packaging>pom</packaging>
     <modules>
         <module>mybatis-extension-core</module>
@@ -42,7 +42,7 @@
         <connection>scm:git:git@github.com:developframework/mybatis-extension.git</connection>
         <developerConnection>scm:git:git@github.com:developframework/mybatis-extension.git</developerConnection>
         <url>https://github.com/developframework/mybatis-extension</url>
-        <tag>v1.1</tag>
+        <tag>${project.version}</tag>
     </scm>
 
     <properties>
@@ -65,12 +65,12 @@
             <dependency>
                 <groupId>com.github.developframework</groupId>
                 <artifactId>mybatis-extension-core</artifactId>
-                <version>1.1</version>
+                <version>1.2-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>com.github.developframework</groupId>
                 <artifactId>mybatis-extension-launcher</artifactId>
-                <version>1.1</version>
+                <version>1.2-SNAPSHOT</version>
             </dependency>
 
             <dependency>
