@@ -14,6 +14,7 @@ import org.apache.ibatis.session.Configuration;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.function.Supplier;
 
 /**
  * @author qiushui on 2023-09-15.
@@ -130,5 +131,9 @@ public class SqlCriteriaBuilder {
 
     public SqlCriteria complex(FieldSqlCriteria criteria) {
         return criteria;
+    }
+
+    public SqlCriteria complex(Supplier<SqlCriteria> supplier) {
+        return supplier.get();
     }
 }
