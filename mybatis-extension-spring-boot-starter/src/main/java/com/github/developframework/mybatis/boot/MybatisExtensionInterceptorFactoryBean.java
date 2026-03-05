@@ -23,10 +23,10 @@ public class MybatisExtensionInterceptorFactoryBean implements FactoryBean<Mybat
         return new MybatisExtensionInterceptor(
                 List.of(
                         new OptimisticLockInnerInterceptor(),
-                        new CompositeIdInnerInterceptor(),
                         new PagingInnerInterceptor(),
                         new SqlCriteriaAssemblerInnerInterceptor(),
-                        new AutoInjectInnerInterceptor()
+                        new AutoInjectInnerInterceptor(),
+                        new CompositeIdInnerInterceptor()
                 )
         );
     }

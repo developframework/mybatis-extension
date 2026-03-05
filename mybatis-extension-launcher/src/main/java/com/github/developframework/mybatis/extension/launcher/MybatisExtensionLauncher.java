@@ -125,10 +125,10 @@ public class MybatisExtensionLauncher {
         MybatisExtensionInterceptor mybatisExtensionInterceptor = new MybatisExtensionInterceptor(
                 List.of(
                         new OptimisticLockInnerInterceptor(),
-                        new CompositeIdInnerInterceptor(),
                         new PagingInnerInterceptor(),
                         new SqlCriteriaAssemblerInnerInterceptor(),
-                        new AutoInjectInnerInterceptor()
+                        new AutoInjectInnerInterceptor(),
+                        new CompositeIdInnerInterceptor()
                 )
         );
         configuration.addInterceptor(mybatisExtensionInterceptor);
