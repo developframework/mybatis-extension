@@ -3,13 +3,10 @@ package com.github.developframework.mybatis.extension.core;
 import com.github.developframework.mybatis.extension.core.parser.MapperMethodParser;
 import com.github.developframework.mybatis.extension.core.parser.def.BaseMapperDefaultParser;
 import com.github.developframework.mybatis.extension.core.parser.naming.MapperMethodNamingParser;
-import com.github.developframework.mybatis.extension.core.structs.ColumnDefinition;
-import com.github.developframework.mybatis.extension.core.structs.ColumnMybatisPlaceholder;
-import com.github.developframework.mybatis.extension.core.structs.EntityDefinition;
-import com.github.developframework.mybatis.extension.core.structs.MapperMethodParseWrapper;
+import com.github.developframework.mybatis.extension.core.structs.*;
 import lombok.Getter;
-import org.apache.ibatis.annotations.ResultMap;
 import org.apache.ibatis.annotations.*;
+import org.apache.ibatis.annotations.ResultMap;
 import org.apache.ibatis.binding.MapperMethod;
 import org.apache.ibatis.builder.BuilderException;
 import org.apache.ibatis.builder.MapperBuilderAssistant;
@@ -20,6 +17,8 @@ import org.apache.ibatis.executor.keygen.KeyGenerator;
 import org.apache.ibatis.executor.keygen.NoKeyGenerator;
 import org.apache.ibatis.executor.keygen.SelectKeyGenerator;
 import org.apache.ibatis.mapping.*;
+import org.apache.ibatis.reflection.MetaObject;
+import org.apache.ibatis.reflection.SystemMetaObject;
 import org.apache.ibatis.reflection.TypeParameterResolver;
 import org.apache.ibatis.scripting.LanguageDriver;
 import org.apache.ibatis.session.Configuration;
@@ -62,13 +61,47 @@ public class MapperExtensionBuilder {
             }
             String mappedStatementId = type.getName() + "." + method.getName();
             if (mappedStatementMetadataRegistry.exists(mappedStatementId)) {
-                continue;
-            }
-            MappedStatement mappedStatement = parseStatement(method, mappedStatementId);
-            if (mappedStatement != null) {
-                mappedStatementMetadataRegistry.register(mappedStatement);
+                final MappedStatementMetadata mappedStatementMetadata = mappedStatementMetadataRegistry.get(mappedStatementId);
+                final MappedStatement mappedStatement = mappedStatementMetadata.getOriginalMappedStatement();
+
+                // 来自@Column的参数 为了处理TypeHandler
+                if (mappedStatement.getSqlCommandType() == SqlCommandType.SELECT && method.getAnnotation(ResultMap.class) == null) {
+                    final Class<?> returnType = getReturnType(method);
+                    if (returnType == entityDefinition.getEntityClass()) {
+                        final org.apache.ibatis.mapping.ResultMap resultMap = getResultMap(method, mappedStatement);
+                        if (resultMap != null) {
+                            // 这里强行给resultMap.resultMappings里面塞入typeHandlerClass
+                            final List<ResultMapping> resultMappings = new ArrayList<>(resultMap.getResultMappings());
+                            applyColumnDefinitions(entityDefinition.getColumnDefinitions().values(), returnType, resultMappings);
+                            if (resultMap.getResultMappings().size() != resultMappings.size()) {
+                                final MetaObject resultMapMeta = SystemMetaObject.forObject(resultMap);
+                                resultMapMeta.setValue("resultMappings", Collections.unmodifiableList(resultMappings));
+                            }
+                        }
+                    }
+                }
+            } else {
+                MappedStatement mappedStatement = parseStatement(method, mappedStatementId);
+                if (mappedStatement != null) {
+                    mappedStatementMetadataRegistry.register(mappedStatement);
+                }
             }
         }
+    }
+
+    private static org.apache.ibatis.mapping.ResultMap getResultMap(Method method, MappedStatement mappedStatement) {
+        final List<String> names = new LinkedList<>();
+        names.add(mappedStatement.getId());
+        for (Class<?> parameterType : method.getParameterTypes()) {
+            names.add(parameterType.getSimpleName());
+        }
+        String resultMapId = String.join("-", names);
+        for (org.apache.ibatis.mapping.ResultMap resultMap : mappedStatement.getResultMaps()) {
+            if (resultMap.getId().equals(resultMapId)) {
+                return resultMap;
+            }
+        }
+        return null;
     }
 
     private boolean canHaveStatement(Method method) {
