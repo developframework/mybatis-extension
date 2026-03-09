@@ -4,9 +4,6 @@ import com.github.developframework.mybatis.extension.core.autoinject.*;
 import com.github.developframework.mybatis.extension.core.idgenerator.AutoIncrementIdGenerator;
 import com.github.developframework.mybatis.extension.core.idgenerator.IdGenerator;
 import com.github.developframework.mybatis.extension.core.idgenerator.IdGeneratorRegistry;
-import com.github.developframework.mybatis.extension.core.typehandlers.StringArrayTypeHandler;
-import com.github.developframework.mybatis.extension.core.typehandlers.StringListTypeHandler;
-import com.github.developframework.mybatis.extension.core.typehandlers.StringSetTypeHandler;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -44,20 +41,5 @@ public class MybatisExtensionAutoConfiguration {
     @Bean
     public AuditModifyTimeAutoInjectProvider auditModifyTimeAutoInjectProvider() {
         return new AuditModifyTimeAutoInjectProvider();
-    }
-
-    @Bean
-    public StringArrayTypeHandler stringArrayTypeHandler() {
-        return new StringArrayTypeHandler();
-    }
-
-    @Bean
-    public StringListTypeHandler stringListTypeHandler() {
-        return new StringListTypeHandler();
-    }
-
-    @Bean
-    public StringSetTypeHandler stringSetTypeHandler() {
-        return new StringSetTypeHandler();
     }
 }
