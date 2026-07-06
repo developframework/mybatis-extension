@@ -107,7 +107,13 @@ public class SqlCriteriaAssemblerInnerInterceptor implements InnerInterceptor {
             for (ColumnDefinition cd : entityDefinition.getMultipleTenantColumnDefinitions()) {
                 final AutoInjectProvider autoInjectProvider = context.getAutoInjectProviderRegistry().getAutoInjectProvider(cd.getAutoInjectProviderClass());
                 final Object provideValue = autoInjectProvider.provide(entityDefinition, cd, parameter);
-                injectSqlCriteriaList.add(builder.eq(root.get(cd.getProperty()), provideValue));
+                final SqlCriteria sqlCriteria = switch (cd.getMultipleTenantMatchMode()) {
+                    case EQ -> builder.eq(root.get(cd.getProperty()), provideValue);
+                    case LIKE -> builder.like(root.get(cd.getProperty()), (String) provideValue);
+                    case LIKE_HEAD -> builder.likeHead(root.get(cd.getProperty()), (String) provideValue);
+                    case LIKE_TAIL -> builder.likeTail(root.get(cd.getProperty()), (String) provideValue);
+                };
+                injectSqlCriteriaList.add(sqlCriteria);
             }
         }
         return injectSqlCriteriaList.toArray(SqlCriteria[]::new);

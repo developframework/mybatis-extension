@@ -160,6 +160,7 @@ public class EntityDefinition {
             if (autoInject != null) {
                 columnDefinition.setAutoInjectProviderClass(autoInject.value());
                 columnDefinition.setMultipleTenant(autoInject.multipleTenant());
+                columnDefinition.setMultipleTenantMatchMode(autoInject.multipleTenantMatchMode());
                 autoInjectColumnDefinitionList.add(columnDefinition);
                 if (autoInject.multipleTenant()) {
                     multipleTenantColumnDefinitionList.add(columnDefinition);

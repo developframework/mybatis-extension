@@ -49,9 +49,20 @@ public abstract class AbstractSqlSourceBuilder implements SqlSourceBuilder {
         final ColumnDefinition[] multipleTenantColumnDefinitions = entityDefinition.getMultipleTenantColumnDefinitions();
         return Arrays.stream(multipleTenantColumnDefinitions)
                 .map(cd -> {
-                    final StaticTextSqlNode textSqlNode = new StaticTextSqlNode(
-                            String.format(" AND %s = %s", cd.wrapColumn(), cd.placeholder())
-                    );
+                    final StaticTextSqlNode textSqlNode = switch (cd.getMultipleTenantMatchMode()) {
+                        case EQ -> new StaticTextSqlNode(
+                                String.format(" AND %s = %s", cd.wrapColumn(), cd.placeholder())
+                        );
+                        case LIKE -> new StaticTextSqlNode(
+                                String.format(" AND %s LIKE CONCAT('%%', %s, '%%')", cd.wrapColumn(), cd.placeholder())
+                        );
+                        case LIKE_HEAD -> new StaticTextSqlNode(
+                                String.format(" AND %s LIKE CONCAT(%s, '%%')", cd.wrapColumn(), cd.placeholder())
+                        );
+                        case LIKE_TAIL -> new StaticTextSqlNode(
+                                String.format(" AND %s LIKE CONCAT('%%', %s)", cd.wrapColumn(), cd.placeholder())
+                        );
+                    };
                     return new IfSqlNode(textSqlNode, cd.getProperty() + " neq null");
                 })
                 .collect(Collectors.toList());

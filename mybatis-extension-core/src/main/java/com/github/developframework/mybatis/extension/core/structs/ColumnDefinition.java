@@ -36,6 +36,8 @@ public class ColumnDefinition {
 
     private boolean multipleTenant;
 
+    private AutoInjectMatchMode multipleTenantMatchMode;
+
     private Class<? extends IdGenerator> idGeneratorClass;
 
     private Class<? extends AutoInjectProvider> autoInjectProviderClass;

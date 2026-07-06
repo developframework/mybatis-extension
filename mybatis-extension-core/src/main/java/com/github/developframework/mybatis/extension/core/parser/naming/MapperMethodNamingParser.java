@@ -239,9 +239,20 @@ public class MapperMethodNamingParser implements MapperMethodParser {
         }
         if (entityDefinition.hasMultipleTenant()) {
             for (ColumnDefinition cd : entityDefinition.getMultipleTenantColumnDefinitions()) {
-                final StaticTextSqlNode textSqlNode = new StaticTextSqlNode(
-                        String.format(" AND %s = %s", cd.wrapColumn(), cd.placeholder())
-                );
+                final StaticTextSqlNode textSqlNode = switch (cd.getMultipleTenantMatchMode()) {
+                    case EQ -> new StaticTextSqlNode(
+                            String.format(" AND %s = %s", cd.wrapColumn(), cd.placeholder())
+                    );
+                    case LIKE -> new StaticTextSqlNode(
+                            String.format(" AND %s LIKE CONCAT('%%', %s, '%%')", cd.wrapColumn(), cd.placeholder())
+                    );
+                    case LIKE_HEAD -> new StaticTextSqlNode(
+                            String.format(" AND %s LIKE CONCAT(%s, '%%')", cd.wrapColumn(), cd.placeholder())
+                    );
+                    case LIKE_TAIL -> new StaticTextSqlNode(
+                            String.format(" AND %s LIKE CONCAT('%%', %s)", cd.wrapColumn(), cd.placeholder())
+                    );
+                };
                 sqlNodes.add(
                         new IfSqlNode(textSqlNode, cd.getProperty() + " neq null")
                 );

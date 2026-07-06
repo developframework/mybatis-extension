@@ -1,6 +1,7 @@
 package com.github.developframework.mybatis.extension.core.annotation;
 
 import com.github.developframework.mybatis.extension.core.autoinject.AutoInjectProvider;
+import com.github.developframework.mybatis.extension.core.structs.AutoInjectMatchMode;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -19,4 +20,7 @@ public @interface AutoInject {
 
     // 标注多租户字段
     boolean multipleTenant() default false;
+
+    // 匹配模式
+    AutoInjectMatchMode multipleTenantMatchMode() default AutoInjectMatchMode.EQ;
 }
