@@ -29,7 +29,7 @@ public class DeleteByIdSqlSourceBuilder extends AbstractSqlSourceBuilder {
         } else {
             sqlSource = buildDeleteSqlSource(configuration, entityDefinition);
         }
-        return new MapperMethodParseWrapper(SqlCommandType.UPDATE, sqlSource);
+        return new MapperMethodParseWrapper(SqlCommandType.DELETE, sqlSource);
     }
 
     private SqlSource buildUpdateSqlSource(Configuration configuration, EntityDefinition entityDefinition) {
