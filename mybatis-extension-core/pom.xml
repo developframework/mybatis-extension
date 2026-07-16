@@ -8,6 +8,7 @@
     </parent>
 
     <artifactId>mybatis-extension-core</artifactId>
+    <name>mybatis-extension core</name>
 
     <dependencies>
         <dependency>

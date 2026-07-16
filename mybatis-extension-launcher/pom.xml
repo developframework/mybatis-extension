@@ -8,6 +8,7 @@
     </parent>
 
     <artifactId>mybatis-extension-launcher</artifactId>
+    <name>mybatis-extension launcher</name>
 
     <dependencies>
         <dependency>
