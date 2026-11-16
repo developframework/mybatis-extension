@@ -24,13 +24,11 @@ public class ExtensionMybatisListener implements ApplicationListener<ContextRefr
         AutoInjectProviderRegistry autoInjectProviderRegistry = applicationContext.getBean(AutoInjectProviderRegistry.class);
         MybatisExtensionProperties mybatisExtensionProperties = applicationContext.getBean(MybatisExtensionProperties.class);
 
-        for (SqlSessionFactory sqlSessionFactory : sqlSessionFactoryObjectProvider) {
-            MybatisExtensionLauncher.configureSqlSessionFactory(
-                    sqlSessionFactory,
-                    mybatisExtensionInterceptor,
-                    autoInjectProviderRegistry,
-                    mybatisExtensionProperties.isEnableDDL()
-            );
-        }
+        MybatisExtensionLauncher.configureSqlSessionFactories(
+                sqlSessionFactoryObjectProvider.stream().toArray(SqlSessionFactory[]::new),
+                mybatisExtensionInterceptor,
+                autoInjectProviderRegistry,
+                mybatisExtensionProperties.isEnableDDL()
+        );
     }
 }

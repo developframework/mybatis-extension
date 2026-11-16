@@ -57,8 +57,8 @@ public class MybatisExtensionLauncher {
         SqlSessionFactory sqlSessionFactory = new SqlSessionFactoryBuilder().build(configuration);
 
         // 配置SqlSessionFactory
-        configureSqlSessionFactory(
-                sqlSessionFactory,
+        configureSqlSessionFactories(
+                new SqlSessionFactory[]{sqlSessionFactory},
                 mybatisExtensionInterceptor,
                 autoInjectProviderRegistry,
                 customize != null && customize.enableDDL()
@@ -70,14 +70,14 @@ public class MybatisExtensionLauncher {
     /**
      * 配置SqlSessionFactory
      */
-    public static void configureSqlSessionFactory(
-            SqlSessionFactory sqlSessionFactory,
+    public static void configureSqlSessionFactories(
+            SqlSessionFactory[] sqlSessionFactories,
             MybatisExtensionInterceptor mybatisExtensionInterceptor,
             AutoInjectProviderRegistry autoInjectProviderRegistry,
             boolean enableDDL
     ) {
         // 扩展核心启动
-        MybatisExtensionCore core = new MybatisExtensionCore(sqlSessionFactory);
+        MybatisExtensionCore core = new MybatisExtensionCore(sqlSessionFactories);
 
         // 给拦截器设置关联组件
         mybatisExtensionInterceptor.setAutoInjectProviderRegistry(autoInjectProviderRegistry);
@@ -86,8 +86,10 @@ public class MybatisExtensionLauncher {
 
         // 执行DDL
         if (enableDDL) {
-            DatabaseDDLExecutor databaseDDLExecutor = new DatabaseDDLExecutor(sqlSessionFactory, core.getEntityDefinitionRegistry());
-            databaseDDLExecutor.executeDDL();
+            for (SqlSessionFactory sqlSessionFactory : sqlSessionFactories) {
+                DatabaseDDLExecutor databaseDDLExecutor = new DatabaseDDLExecutor(sqlSessionFactory, core.getEntityDefinitionRegistry());
+                databaseDDLExecutor.executeDDL();
+            }
         }
     }
 
